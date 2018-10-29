@@ -1,17 +1,20 @@
-from flask import Flask
+from flask import Flask, request, abort
 from datetime import datetime
 app = Flask(__name__)
 
-@app.route('/')
+@app.route('/webhook', methods=['POST'])
 def homepage():
-    the_time = datetime.now().strftime("%A, %d %b %Y %l:%M %p")
-
-    return """
-    <h1>Hello heroku</h1>
-    <p>It is currently {time}.</p>
-
-    <img src="http://loremflickr.com/600/400" />
-    """.format(time=the_time)
+    json = request.get_json()
+    if json is None:
+        abort(400)
+    # print('Arrived request', json)
+    if json.get('object_kind') != 'merge_request':
+        return 'I only process merge requests right now!'
+    mr = json['object_attributes']
+    if mr['title'].startswith('WIP:'):
+        return 'Ignoring WIP MR'
+    print("Processing MR #", mr['id'])
+    return 'OK'
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=True)
