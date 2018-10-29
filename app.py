@@ -13,7 +13,7 @@ def homepage():
     mr = json['object_attributes']
     if mr['title'].startswith('WIP:'):
         return 'Ignoring WIP MR'
-    print("Processing MR #", mr['id'])
+    print("Processing MR #", mr['iid'])
     return 'OK'
 
 if __name__ == '__main__':
