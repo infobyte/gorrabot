@@ -8,6 +8,11 @@ API_PREFIX = 'https://gitlab.com/api/v4'
 MSG_MISSING_CHANGELOG = (
     'Si mergear un merge request tu quieres, tocar el changelog tu debes'
 )
+MSG_TKT_MR = (
+    'Tener merge requests con "Tkt ***REMOVED***" en el título no es muy útil ya que '
+    'puedo ver esa información en el nombre del branch. Se podría usar un '
+    'título más descriptivo para este merge request.'
+)
 
 session = requests.Session()
 session.headers['Private-Token'] = TOKEN
@@ -30,11 +35,15 @@ def homepage():
 
     print("Processing MR #", mr['iid'])
     (project_id, iid) = (mr['source_project_id'], mr['iid'])
+
     if not has_changed_changelog(project_id, iid):
         username = get_username(json)
         set_wip(project_id, iid)
         comment_mr(project_id, iid, "@{}: {}".format(
             username, MSG_MISSING_CHANGELOG))
+    if mr['title'].lower().startswith('tkt '):
+        comment_mr(project_id, iid, "@{}: {}".format(
+            username, MSG_TKT_MR))
 
     return 'OK'
 
