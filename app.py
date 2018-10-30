@@ -23,6 +23,10 @@ def homepage():
     mr = json['object_attributes']
     if mr['work_in_progress']:
         return 'Ignoring WIP MR'
+    if any(
+            label['title'] == 'no-changelog'
+            for label in json.get('labels', [])):
+        return 'Ignoring MR with label no-changelog'
 
     print("Processing MR #", mr['iid'])
     (project_id, iid) = (mr['source_project_id'], mr['iid'])
