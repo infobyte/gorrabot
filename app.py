@@ -5,7 +5,9 @@ app = Flask(__name__)
 TOKEN = '***REMOVED***'
 API_PREFIX = 'https://gitlab.com/api/v4'
 
-MSG_MISSING_CHANGELOG = 'Acá falta el changelog!!!'
+MSG_MISSING_CHANGELOG = (
+    'Si mergear un merge request tu quieres, tocar el changelog tu debes'
+)
 
 session = requests.Session()
 session.headers['Private-Token'] = TOKEN
