@@ -47,7 +47,7 @@ def homepage():
         set_wip(project_id, iid)
     if mr['title'].lower().startswith('tkt '):
         comment_mr(project_id, iid, "@{}: {}".format(
-            username, MSG_TKT_MR))
+            username, MSG_TKT_MR), can_be_duplicated=False)
 
     return 'OK'
 
@@ -84,12 +84,24 @@ def get_changed_files(changes):
     return set(change['new_path'] for change in changes)
 
 
-def comment_mr(project_id, iid, body):
+def comment_mr(project_id, iid, body, can_be_duplicated=True):
+    if not can_be_duplicated:
+        # Ugly hack to drop user mentions from body
+        search_title = body.split(': ', 1)[-1]
+        res = session.get(mr_url(project_id, iid) + '/notes')
+        res.raise_for_status()
+        comments = res.json()
+        if any(search_title in comment['body']
+                for comment in comments):
+            # This comment has already been made
+            return
+
     url = mr_url(project_id, iid) + '/notes'
     data = {"body": body}
     res = session.post(url, json=data)
     res.raise_for_status()
     return res.json()
+
 
 def set_wip(project_id, iid):
     url = mr_url(project_id, iid)
