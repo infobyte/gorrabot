@@ -1,8 +1,9 @@
+import os
 import requests
 from flask import Flask, request, abort
 app = Flask(__name__)
 
-TOKEN = '***REMOVED***'
+TOKEN = os.environ['GITLAB_TOKEN']
 API_PREFIX = 'https://gitlab.com/api/v4'
 
 MSG_MISSING_CHANGELOG = (
