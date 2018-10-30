@@ -40,8 +40,8 @@ def homepage():
     print("Processing MR #", mr['iid'])
     (project_id, iid) = (mr['source_project_id'], mr['iid'])
 
+    username = get_username(json)
     if not has_changed_changelog(project_id, iid):
-        username = get_username(json)
         set_wip(project_id, iid)
         comment_mr(project_id, iid, "@{}: {}".format(
             username, MSG_MISSING_CHANGELOG))
