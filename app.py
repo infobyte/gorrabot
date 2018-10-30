@@ -42,9 +42,9 @@ def homepage():
 
     username = get_username(json)
     if not has_changed_changelog(project_id, iid):
-        set_wip(project_id, iid)
         comment_mr(project_id, iid, "@{}: {}".format(
             username, MSG_MISSING_CHANGELOG))
+        set_wip(project_id, iid)
     if mr['title'].lower().startswith('tkt '):
         comment_mr(project_id, iid, "@{}: {}".format(
             username, MSG_TKT_MR))
