@@ -55,7 +55,10 @@ def homepage():
 def get_username(data):
     if 'assignee' in data:
         return data['assignee']['username']
-    return data['user']['username']
+    user_id = data['object_attributes']['author_id']
+    res = session.get(API_PREFIX + '/users/{}'.format(user_id))
+    res.raise_for_status()
+    return res.json()['username']
 
 
 def has_changed_changelog(project_id, iid):
