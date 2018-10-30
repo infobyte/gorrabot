@@ -26,8 +26,12 @@ def homepage():
     if json.get('object_kind') != 'merge_request':
         return 'I only process merge requests right now!'
     mr = json['object_attributes']
+
     if mr['work_in_progress']:
         return 'Ignoring WIP MR'
+    if mr['state'] in ('merged', 'closed'):
+        return 'Ignoring closed MR'
+
     if any(
             label['title'] == 'no-changelog'
             for label in json.get('labels', [])):
