@@ -4,6 +4,8 @@ from flask import Flask, request, abort
 app = Flask(__name__)
 
 TOKEN = os.environ['GITLAB_TOKEN']
+REQUEST_TOKEN = os.environ['GITLAB_CHECK_TOKEN']
+
 API_PREFIX = 'https://gitlab.com/api/v4'
 
 MSG_MISSING_CHANGELOG = (
@@ -21,6 +23,8 @@ session.headers['Private-Token'] = TOKEN
 
 @app.route('/webhook', methods=['POST'])
 def homepage():
+    if request.headers.get('X-Gitlab-Token') != REQUEST_TOKEN:
+        abort(403)
     json = request.get_json()
     if json is None:
         abort(400)
