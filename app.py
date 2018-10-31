@@ -202,11 +202,6 @@ def update_issue(project_id, iid, data):
     url = '{}/projects/{}/issues/{}'.format(
             API_PREFIX, project_id, iid)
     res = session.put(url, json=data)
-    print()
-    print()
-    print(data, res.json())
-    print()
-    print()
     res.raise_for_status()
     return res.json()
 
