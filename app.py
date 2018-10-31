@@ -7,7 +7,8 @@ TOKEN = os.environ['GITLAB_TOKEN']
 API_PREFIX = 'https://gitlab.com/api/v4'
 
 MSG_MISSING_CHANGELOG = (
-    'Si mergear un merge request tu quieres, tocar el changelog tu debes'
+    'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
+    'debes'
 )
 MSG_TKT_MR = (
     'Tener merge requests con "Tkt ***REMOVED***" en el título no es muy útil ya que '
