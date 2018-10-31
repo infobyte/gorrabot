@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 from flask import Flask, request, abort
 app = Flask(__name__)
@@ -31,7 +32,9 @@ def homepage():
     # print('Arrived request', json)
     if json.get('object_kind') != 'merge_request':
         return 'I only process merge requests right now!'
+
     mr = json['object_attributes']
+    sync_related_issue(mr)
 
     if mr['work_in_progress']:
         return 'Ignoring WIP MR'
@@ -121,6 +124,89 @@ def set_wip(project_id, iid):
     assert not mr['work_in_progress'] and not mr['title'].startswith('WIP:')
     data = {"title": "WIP: " + mr['title']}
     res = session.put(url, json=data)
+    res.raise_for_status()
+    return res.json()
+
+
+def sync_related_issue(mr):
+    """Change the status of the issue related to the new/updated MR
+
+    Get the issue by matching the source branch name. If the issue has
+    the multiple-merge-requests label, do nothing.
+
+    WIP MR -> Label issue as accepted
+    Pending merge/approbal MR -> Label issue as test
+    Merged MR -> Close issue and delete status labels (accepted, test)
+    # Closed MR -> Close issue, delete status label and label as invalid
+    Closed MR -> Do nothing, assume that another MR will be created
+    """
+
+    issue_iid = get_related_issue_iid(mr)
+    project_id = mr['source_project_id']
+    if issue_iid is None:
+        return
+    issue = get_issue(project_id, issue_iid)
+    if issue is None or any(
+            label['title'] == 'multiple-merge-requests'
+            for label in mr.get('labels', [])):
+        return
+
+    close = False
+    new_labels = issue['labels']
+    try:
+        new_labels.remove('Test')
+    except ValueError:
+        pass
+    try:
+        new_labels.remove('Accepted')
+    except ValueError:
+        pass
+
+    if mr['work_in_progress']:
+        new_labels.append('Accepted')
+    elif mr['state'] == 'opened' and not mr['work_in_progress']:
+        new_labels.append('Test')
+    elif mr['state'] == 'merged':
+        close = True
+    elif mr['state'] == 'closed':
+        return
+
+    new_labels = list(set(new_labels))
+    data = {"labels": ','.join(new_labels)}
+    if close:
+        data['state_event'] = 'close'
+    return update_issue(project_id, issue_iid, data)
+
+
+def get_related_issue_iid(mr):
+    branch = mr['source_branch']
+    try:
+        regex = r'***REMOVED***'
+        iid = re.findall(regex, branch)[0]
+    except IndexError:
+        return
+    return int(iid)
+
+
+def get_issue(project_id, iid):
+    url = '{}/projects/{}/issues/{}'.format(
+            API_PREFIX, project_id, iid)
+    res = session.get(url)
+    if res.status_code == 404:
+        return
+    res.raise_for_status()
+    return res.json()
+
+
+def update_issue(project_id, iid, data):
+    url = '{}/projects/{}/issues/{}'.format(
+            API_PREFIX, project_id, iid)
+    res = session.put(url, json=data)
+    print()
+    print()
+    print(data, res.json())
+    print()
+    print()
     res.raise_for_status()
     return res.json()
 
