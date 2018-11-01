@@ -18,6 +18,19 @@ MSG_TKT_MR = (
     'puedo ver esa información en el nombre del branch. Se podría usar un '
     'título más descriptivo para este merge request.'
 )
+MSG_BAD_BRANCH_NAME = (
+    'Los nombres de branch deben tener el formato tkt_***REMOVED***_1234_short_desc. '
+    'Es decir, tienen que tener la versión para la que se quieren mergear '
+    '(***REMOVED***, ***REMOVED*** o ***REMOVED***), el número de ticket y una descripción corta.'
+    '\n\n'
+    'En caso de que sea un ticket de soporte usar el prefijo sup en vez de '
+    'tkt. Si se trata de un branch experimental que no va a ser mergeado a '
+    'corto plazo se puede usar el prefijo exp en vez de tkt.'
+    '\n\n'
+    'Esta te la dejo pasar, la próxima recorda usar esta nomenclatura!'
+)
+
+branch_regex = r'***REMOVED***'
 
 session = requests.Session()
 session.headers['Private-Token'] = TOKEN
@@ -57,9 +70,14 @@ def homepage():
         comment_mr(project_id, iid, "@{}: {}".format(
             username, MSG_MISSING_CHANGELOG))
         set_wip(project_id, iid)
+
     if mr['title'].lower().startswith('tkt '):
         comment_mr(project_id, iid, "@{}: {}".format(
             username, MSG_TKT_MR), can_be_duplicated=False)
+
+    if not re.match(branch_regex, mr['source_branch']):
+        comment_mr(project_id, iid, "@{}: {}".format(
+            username, MSG_BAD_BRANCH_NAME))
 
     return 'OK'
 
@@ -222,8 +240,7 @@ def fill_fields_based_on_issue(mr):
 def get_related_issue_iid(mr):
     branch = mr['source_branch']
     try:
-        regex = r'***REMOVED***'
-        iid = re.findall(regex, branch)[0]
+        iid = re.findall(branch_regex, branch)[0]
     except IndexError:
         return
     return int(iid)
