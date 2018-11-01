@@ -22,6 +22,7 @@ MSG_TKT_MR = (
 session = requests.Session()
 session.headers['Private-Token'] = TOKEN
 
+
 @app.route('/webhook', methods=['POST'])
 def homepage():
     if request.headers.get('X-Gitlab-Token') != REQUEST_TOKEN:
@@ -38,6 +39,7 @@ def homepage():
 
     mr = json['object_attributes']
     sync_related_issue(mr)
+    fill_fields_based_on_issue(mr)
 
     if mr['work_in_progress']:
         return 'Ignoring WIP MR'
@@ -129,6 +131,11 @@ def set_wip(project_id, iid):
 
     assert not mr['work_in_progress'] and not mr['title'].startswith('WIP:')
     data = {"title": "WIP: " + mr['title']}
+    return update_mr(project_id, iid, data)
+
+
+def update_mr(project_id, iid, data):
+    url = mr_url(project_id, iid)
     res = session.put(url, json=data)
     res.raise_for_status()
     return res.json()
@@ -180,7 +187,36 @@ def sync_related_issue(mr):
     data = {"labels": ','.join(new_labels)}
     if close:
         data['state_event'] = 'close'
+
     return update_issue(project_id, issue_iid, data)
+
+
+def fill_fields_based_on_issue(mr):
+    """Complete the MR fields with data in its associated issue.
+
+    If the MR doesn't have an assigned user, set to the issue's
+    assignee.
+
+    If the MR doesn't have a milestone, set it to the issue's
+    milestone.
+    """
+
+    issue_iid = get_related_issue_iid(mr)
+    project_id = mr['source_project_id']
+    if issue_iid is None:
+        return
+    issue = get_issue(project_id, issue_iid)
+    if issue is None:
+        return
+
+    data = {}
+    if mr['milestone_id'] is None and issue.get('milestone'):
+        data['milestone_id'] = issue['milestone']['id']
+    if mr['assignee_id'] is None and len(issue.get('assignees', [])) == 1:
+        data['assignee_id'] = issue['assignees'][0]['id']
+
+    if data:
+        return update_mr(project_id, mr['iid'], data)
 
 
 def get_related_issue_iid(mr):
