@@ -27,7 +27,7 @@ MSG_BAD_BRANCH_NAME = (
     'tkt. Si se trata de un branch experimental que no va a ser mergeado a '
     'corto plazo se puede usar el prefijo exp en vez de tkt.'
     '\n\n'
-    'Esta te la dejo pasar, la próxima recorda usar esta nomenclatura!'
+    'Esta te la dejo pasar, la próxima recordá usar esta nomenclatura!'
 )
 
 branch_regex = r'***REMOVED***'
