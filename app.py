@@ -144,7 +144,8 @@ def sync_related_issue(mr):
     Pending merge/approbal MR -> Label issue as test
     Merged MR -> Close issue and delete status labels (accepted, test)
     # Closed MR -> Close issue, delete status label and label as invalid
-    Closed MR -> Do nothing, assume that another MR will be created
+    # Closed MR -> Do nothing, assume that another MR will be created
+    Closed MR -> Delete status labels (set to new)
     """
 
     issue_iid = get_related_issue_iid(mr)
@@ -173,7 +174,7 @@ def sync_related_issue(mr):
     elif mr['state'] == 'merged':
         close = True
     elif mr['state'] == 'closed':
-        return
+        pass
 
     new_labels = list(set(new_labels))
     data = {"labels": ','.join(new_labels)}
