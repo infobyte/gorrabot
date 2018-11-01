@@ -33,6 +33,9 @@ def homepage():
     if json.get('object_kind') != 'merge_request':
         return 'I only process merge requests right now!'
 
+    if has_label(json, 'sacate-la-gorra'):
+        return 'Ignoring all!'
+
     mr = json['object_attributes']
     sync_related_issue(mr)
 
@@ -41,9 +44,7 @@ def homepage():
     if mr['state'] in ('merged', 'closed'):
         return 'Ignoring closed MR'
 
-    if any(
-            label['title'] == 'no-changelog'
-            for label in json.get('labels', [])):
+    if has_label(json, 'no-changelog'):
         return 'Ignoring MR with label no-changelog'
 
     print("Processing MR #", mr['iid'])
@@ -68,6 +69,11 @@ def get_username(data):
     res = session.get(API_PREFIX + '/users/{}'.format(user_id))
     res.raise_for_status()
     return res.json()['username']
+
+
+def has_label(obj, label_name):
+    return any(label['title'] == label_name
+               for label in obj.get('labels', []))
 
 
 def has_changed_changelog(project_id, iid):
@@ -146,9 +152,7 @@ def sync_related_issue(mr):
     if issue_iid is None:
         return
     issue = get_issue(project_id, issue_iid)
-    if issue is None or any(
-            label['title'] == 'multiple-merge-requests'
-            for label in mr.get('labels', [])):
+    if issue is None or has_label(mr, 'multiple-merge-requests'):
         return
 
     close = False
