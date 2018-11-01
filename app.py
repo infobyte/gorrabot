@@ -51,8 +51,15 @@ def homepage():
         return 'Ignoring all!'
 
     mr = json['object_attributes']
+    username = get_username(json)
+    (project_id, iid) = (mr['source_project_id'], mr['iid'])
+
     sync_related_issue(mr)
     fill_fields_based_on_issue(mr)
+
+    if not re.match(branch_regex, mr['source_branch']):
+        comment_mr(project_id, iid, "@{}: {}".format(
+            username, MSG_BAD_BRANCH_NAME))
 
     if mr['work_in_progress']:
         return 'Ignoring WIP MR'
@@ -63,9 +70,7 @@ def homepage():
         return 'Ignoring MR with label no-changelog'
 
     print("Processing MR #", mr['iid'])
-    (project_id, iid) = (mr['source_project_id'], mr['iid'])
 
-    username = get_username(json)
     if not has_changed_changelog(project_id, iid):
         comment_mr(project_id, iid, "@{}: {}".format(
             username, MSG_MISSING_CHANGELOG))
@@ -74,10 +79,6 @@ def homepage():
     if mr['title'].lower().startswith('tkt '):
         comment_mr(project_id, iid, "@{}: {}".format(
             username, MSG_TKT_MR), can_be_duplicated=False)
-
-    if not re.match(branch_regex, mr['source_branch']):
-        comment_mr(project_id, iid, "@{}: {}".format(
-            username, MSG_BAD_BRANCH_NAME))
 
     return 'OK'
 
