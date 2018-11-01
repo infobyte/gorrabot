@@ -59,7 +59,7 @@ def homepage():
 
     if not re.match(branch_regex, mr['source_branch']):
         comment_mr(project_id, iid, "@{}: {}".format(
-            username, MSG_BAD_BRANCH_NAME))
+            username, MSG_BAD_BRANCH_NAME), can_be_duplicated=False)
 
     if mr['work_in_progress']:
         return 'Ignoring WIP MR'
