@@ -6,6 +6,7 @@ app = Flask(__name__)
 
 TOKEN = os.environ['GITLAB_TOKEN']
 REQUEST_TOKEN = os.environ['GITLAB_CHECK_TOKEN']
+SELF_USERNAME = os.environ['GITLAB_BOT_USERNAME']
 
 API_PREFIX = 'https://gitlab.com/api/v4'
 
@@ -43,7 +44,12 @@ def homepage():
     json = request.get_json()
     if json is None:
         abort(400)
-    # print('Arrived request', json)
+
+    if json['user']['username'] == SELF_USERNAME:
+        # To prevent infinite loops and race conditions, ignore events related
+        # to actions that this bot did
+        return 'Ignoring webhook from myself'
+
     if json.get('object_kind') != 'merge_request':
         return 'I only process merge requests right now!'
 
