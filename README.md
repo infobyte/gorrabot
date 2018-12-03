@@ -1,4 +1,4 @@
-Gorrabot is a Gitlab bot made to automate checks and proccesses in the Faraday
+Gorrabot is a Gitlab bot made to automate checks and processes in the Faraday
 development.
 
 # Features
@@ -12,7 +12,7 @@ a new version. In the latter, we could easily forget what we did and write a
 lower quality changelog message.
 
 When somebody publishes a ready to merge MR that didn't touch the changelog,
-gorrabot automaticaly sets it to WIP (work in proccess). Then the MR's author
+gorrabot automaticaly sets it to WIP (work in process). Then the MR's author
 is required to touch the changelog, push a new commit and resolve the WIP
 status from the gitlab web.
 
@@ -46,7 +46,7 @@ won't be modified by gorrabot.
 If a merge request doesn't have an assigned user, derive it from the assigned
 user of its related issue. Do the same with the MR's milestone.
 
-## Branch naming nomenclature check
+## <a name="branch-nomenclature-check"></a>Branch naming nomenclature check
 
 If the source branch of a merge request doesn't match our nomenclature,
 note that in a comment. The merge request won't be set to WIP because
@@ -78,3 +78,36 @@ There is no need to set it to WIP.
   information
 * `sacate-la-gorra`: A wildcard label that totally disables gorrabot on
   that merge request. **THIS ISN'T RECOMMENDED, SO THINK TWICE WHEN USING THIS**
+
+
+# Design goals
+
+## Avoid state
+
+To simplify deployment and avoid having to do data migrations, it makes sense
+to not use a database in this project. Most things can be achieved this way.
+
+For example, lets take the [Branch nomenclature
+check](#branch-nomenclature-check) feature. I don't want gorrabot to make a
+comment each time the merge request is modified, so I need a way to avoid
+duplicating this kind of comment.
+
+The traditional way to solve this would be to store in a database the merge
+requests where this comment has already been made. I instead check for the
+comments of the MR. If there exists a comment similar to what gorrabot
+wants to comment, return without commenting. When done this way, I don't
+need to store anything in a database, just use the Gitlab information.
+
+This has some small drawbacks also. For example, if I wan't to change the text
+of the comment to something new and a merge request has already a comment with
+the old version text, there will be two similar comments with different text.
+
+I think this behavior is acceptable for what we're doing, and doing big
+architecture changes just to fix this kind of things doesn't bring much
+benefits. Sacrificing simplicity is bad.
+
+## Don't replace a CI
+
+The goal of this project is to help us with some things related to our
+development process, not to our code base itself. For this things,
+having a continuous ***REMOVED*** seems to be a better choice.
