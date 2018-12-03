@@ -18,8 +18,8 @@ status from the gitlab web.
 
 Alternatively, if the MR's author doesn't consider useful to add a changelog
 entry for that change (e.g. when fixing typos or doing small refactors), he/she
-can add the `no-changelog` entry to it request and this check won't be
-performed to that merge request.
+can add the `no-changelog` label to the merge request and this check won't be
+performed to it.
 
 ## Issue state changing based on MR status
 
@@ -36,10 +36,10 @@ list):
 * Closed MR -> Delete status labels (set to new)
 
 <a name="multiple-merge-requests"></a>
-Sometimes this actions aren't desired, like for example when an issue
-requires multiple merge requests merged to be considered as fixed.
-In this case, you can add the `multiple-merge-requests` to the issue
-and its status and labels won't be modified by gorrabot.
+Sometimes this actions aren't desired, like for example when an issue requires
+multiple merge requests to be considered as fixed.  In this case, you can add
+the `multiple-merge-requests` label to the issue and its status and labels
+won't be modified by gorrabot.
 
 ## Merge request field completion based on its issue
 
@@ -63,14 +63,18 @@ For example, it wouldn't be useful to have a merge request titled `Tkt ***REMOVE
 wanted, we could know the related issue and target version just by looking at
 the source and target branches of the MR.
 
+Like with the previous feature, this check will just leave a comment in the
+merge request if doesn't pass, so the user could avoid this the next time.
+There is no need to set it to WIP.
+
 # Summary of special labels
 
-* `no-changelog`: Use this when the merge request consist of a really
+* `no-changelog`: Use this when the merge request consists of a really
   small check that shouldn't be reflected on the `RELEASE.md` file
-  See [this](#changelog-checks) for more documentation about this
+  See [this](#changelog-check) for more documentation about this
 * `multiple-merge-requests`: The only label that must be applied to issues
   instead of merge requests. Avoid gorrabot changing the status and labels of
   issues labeled with this. See [this](#multiple-merge-requests) for more
   information
 * `sacate-la-gorra`: A wildcard label that totally disables gorrabot on
-  that merge request. THIS ISN'T RECOMMENDED, SO THINK TWICE WHEN USING THIS
+  that merge request. **THIS ISN'T RECOMMENDED, SO THINK TWICE WHEN USING THIS**
