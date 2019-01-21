@@ -14,6 +14,12 @@ MSG_MISSING_CHANGELOG = (
     'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
     'debes'
 )
+NO_MD_CHANGELOG = (
+    'El fichero que se creó en el directorio `CHANGELOG` no tiene extensión '
+    '`.md` por lo que no va a ser tomado en cuenta por el sistema de '
+    'generación de changelogs. Hay que arreglar esto para que se pueda '
+    'mergear el MR.'
+)
 MSG_TKT_MR = (
     'Tener merge requests con "Tkt ***REMOVED***" en el título no es muy útil ya que '
     'puedo ver esa información en el nombre del branch. Se podría usar un '
@@ -77,9 +83,13 @@ def homepage():
 
     print("Processing MR #", mr['iid'])
 
-    if not has_changed_changelog(project_id, iid):
+    if not has_changed_changelog(project_id, iid, only_md=True):
+        if has_changed_changelog(project_id, iid, only_md=False):
+            msg = NO_MD_CHANGELOG
+        else:
+            msg = MSG_MISSING_CHANGELOG
         comment_mr(project_id, iid, "@{}: {}".format(
-            username, MSG_MISSING_CHANGELOG))
+            username, msg))
         set_wip(project_id, iid)
 
     if mr['title'].lower().startswith('tkt '):
@@ -103,14 +113,14 @@ def has_label(obj, label_name):
                for label in obj.get('labels', []))
 
 
-def has_changed_changelog(project_id, iid):
-    # changes = get_mr_changes(mr['source_project_id'], mr['iid'])  # TODO borrame
+def has_changed_changelog(project_id, iid, only_md):
     changes = get_mr_changes(project_id, iid)
     changed_files = get_changed_files(changes)
-    return any(
-        filename.startswith('CHANGELOG') and filename.endswith('.md')
-        for filename in changed_files
-        )
+    for filename in changed_files:
+        if filename.startswith('CHANGELOG'):
+            if not only_md or filename.endswith('.md'):
+                return True
+    return False
 
 
 def mr_url(project_id, iid):
