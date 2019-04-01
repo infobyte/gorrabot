@@ -98,7 +98,7 @@ comments of the MR. If there exists a comment similar to what gorrabot
 wants to comment, return without commenting. When done this way, I don't
 need to store anything in a database, just use the Gitlab information.
 
-This has some small drawbacks also. For example, if I wan't to change the text
+This has some small drawbacks also. For example, if I want to change the text
 of the comment to something new and a merge request has already a comment with
 the old version text, there will be two similar comments with different text.
 
