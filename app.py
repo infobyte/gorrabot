@@ -68,6 +68,7 @@ def homepage():
 
     sync_related_issue(mr)
     fill_fields_based_on_issue(mr)
+    check_issue_reference_in_description(mr)
 
     if not re.match(branch_regex, mr['source_branch']):
         comment_mr(project_id, iid, "@{}: {}".format(
@@ -252,6 +253,18 @@ def fill_fields_based_on_issue(mr):
 
     if data:
         return update_mr(project_id, mr['iid'], data)
+
+
+def check_issue_reference_in_description(mr):
+    issue_iid = get_related_issue_iid(mr)
+    if issue_iid is None:
+        return
+    if f'#{issue_iid}' in mr['description']:
+        # There is already a reference to the issue
+        return
+    project_id = mr['source_project_id']
+    new_desc = f'Closes #{issue_iid} \r\n\r\n{mr["description"]}'
+    return update_mr(project_id, mr['iid'], {'description': new_desc})
 
 
 def get_related_issue_iid(mr):
