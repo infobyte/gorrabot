@@ -66,9 +66,10 @@ def homepage():
     username = get_username(json)
     (project_id, iid) = (mr['source_project_id'], mr['iid'])
 
+    check_issue_reference_in_description(mr)
+    add_multiple_merge_requests_label_if_needed(mr)
     sync_related_issue(mr)
     fill_fields_based_on_issue(mr)
-    check_issue_reference_in_description(mr)
 
     if not re.match(branch_regex, mr['source_branch']):
         comment_mr(project_id, iid, "@{}: {}".format(
@@ -267,6 +268,42 @@ def check_issue_reference_in_description(mr):
     return update_mr(project_id, mr['iid'], {'description': new_desc})
 
 
+def add_multiple_merge_requests_label_if_needed(mr):
+    issue_iid = get_related_issue_iid(mr)
+    project_id = mr['source_project_id']
+    if issue_iid is None:
+        return
+    if mr['state'] == 'closed':
+        # Not adding this could mail the assertion below fail
+        return
+
+    related_mrs = get_related_merge_requests(
+        mr['source_project_id'], issue_iid)
+
+    # Discard closed merge requests, maybe they were created
+    # accidentally and then closed
+    related_mrs = [rmr for rmr in related_mrs
+                   if rmr['state'] != 'closed']
+
+    # Some MRs could be related to an issue only because they mentioned it,
+    # not because they are implementing that issue
+    related_mrs = [rmr for rmr in related_mrs
+                   if str(issue_iid) in mr['source_branch']]
+
+    assert any(rmr['iid'] == mr['iid']
+               for rmr in related_mrs)
+
+    if len(related_mrs) > 1:
+        issue = get_issue(project_id, issue_iid)
+        if issue is None or has_label(mr, 'multiple-merge-requests'):
+            return
+        new_labels = issue['labels']
+        new_labels.append('multiple-merge-requests')
+        new_labels = list(set(new_labels))
+        data = {"labels": ','.join(new_labels)}
+        return update_issue(project_id, issue_iid, data)
+
+
 def get_related_issue_iid(mr):
     branch = mr['source_branch']
     try:
@@ -282,6 +319,14 @@ def get_issue(project_id, iid):
     res = session.get(url)
     if res.status_code == 404:
         return
+    res.raise_for_status()
+    return res.json()
+
+
+def get_related_merge_requests(project_id, issue_iid):
+    url = '{}/projects/{}/issues/{}/related_merge_requests'.format(
+            API_PREFIX, project_id, issue_iid)
+    res = session.get(url)
     res.raise_for_status()
     return res.json()
 
