@@ -112,6 +112,12 @@ def handle_push(push):
         return msg
     branch_name = push['ref'][len(prefix):]
 
+    if '/dev' in branch_name:
+        retry_conflict_check_of_mrs_with_target_branch(
+            push['project_id'],
+            branch_name
+        )
+
     if '***REMOVED***' in branch_name:
         parent_branches = [
             branch_name.replace('***REMOVED***', '***REMOVED***')
@@ -368,6 +374,35 @@ def retry_merge_conflict_check_of_branch(project_id, branch_name):
     retry_job(project_id, mc_check_job['id'])
 
 
+def retry_conflict_check_of_mrs_with_target_branch(project_id, target_branch):
+    """Find all MRs with the specified target branch, and in the current
+    or upcoming milestones. Retry the merge conflict check job of all of
+    them"""
+    merge_requests = get_merge_requests(
+        project_id,
+        {'target_branch': target_branch, 'state': 'opened'}
+    )
+    merge_requests = filter_current_or_upcoming_mrs(merge_requests)
+
+    for mr in merge_requests:
+        retry_merge_conflict_check_of_branch(
+            project_id,
+            mr['source_branch']
+        )
+
+
+def filter_current_or_upcoming_mrs(merge_requests):
+    for mr in merge_requests:
+        milestone = mr['milestone']
+        if not milestone:
+            continue
+        if milestone['state'] != 'active':
+            continue
+        if ('upcoming' in milestone['title'] or
+                'current' in milestone['title']):
+            yield mr
+
+
 def get_related_issue_iid(mr):
     branch = mr['source_branch']
     try:
@@ -383,6 +418,13 @@ def get_issue(project_id, iid):
     res = session.get(url)
     if res.status_code == 404:
         return
+    res.raise_for_status()
+    return res.json()
+
+
+def get_merge_requests(project_id, filters={}):
+    url = f'{API_PREFIX}/projects/{project_id}/merge_requests'
+    res = session.get(url, params=filters)
     res.raise_for_status()
     return res.json()
 
