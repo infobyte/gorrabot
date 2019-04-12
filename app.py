@@ -121,6 +121,8 @@ def handle_push(push):
             branch_name.replace('***REMOVED***', '***REMOVED***'),
             branch_name.replace('***REMOVED***', '***REMOVED***'),
         ]
+    else:
+        parent_branches = []
 
     for parent_branch_name in parent_branches:
         retry_merge_conflict_check_of_branch(
