@@ -51,6 +51,9 @@ def homepage():
     if json is None:
         abort(400)
 
+    if json.get('object_kind') == 'push':
+        return handle_push(json)
+
     if json['user']['username'] == SELF_USERNAME:
         # To prevent infinite loops and race conditions, ignore events related
         # to actions that this bot did
@@ -101,6 +104,32 @@ def homepage():
     return 'OK'
 
 
+def handle_push(push):
+    prefix = 'refs/heads/'
+    if not push['ref'].startswith(prefix):
+        msg = f'Unknown ref name {push["ref"]}'
+        print(msg)
+        return msg
+    branch_name = push['ref'][len(prefix):]
+
+    if '***REMOVED***' in branch_name:
+        parent_branches = [
+            branch_name.replace('***REMOVED***', '***REMOVED***')
+        ]
+    elif '***REMOVED***' in branch_name:
+        parent_branches = [
+            branch_name.replace('***REMOVED***', '***REMOVED***'),
+            branch_name.replace('***REMOVED***', '***REMOVED***'),
+        ]
+
+    for parent_branch_name in parent_branches:
+        retry_merge_conflict_check_of_branch(
+            push['project_id'], parent_branch_name
+        )
+
+    return 'OK'
+
+
 def get_username(data):
     if 'assignee' in data:
         return data['assignee']['username']
@@ -135,6 +164,24 @@ def get_mr_changes(project_id, iid):
     res = session.get(url)
     res.raise_for_status()
     return res.json()['changes']
+
+
+def get_mr_last_commit(mr):
+    project_id = mr['source_project_id']
+    url = mr_url(project_id, mr['iid']) + '/commits'
+    res = session.get(url)
+    res.raise_for_status()
+    try:
+        return res.json()[0]
+    except IndexError:
+        return
+
+
+def get_branch_last_commit(project_id, branch_name):
+    branch = get_branch(project_id, branch_name)
+    if branch is None:
+        return
+    return branch['commit']
 
 
 def get_changed_files(changes):
@@ -304,6 +351,21 @@ def add_multiple_merge_requests_label_if_needed(mr):
         return update_issue(project_id, issue_iid, data)
 
 
+def retry_merge_conflict_check_of_branch(project_id, branch_name):
+    last_commit = get_branch_last_commit(project_id, branch_name)
+    if last_commit is None:
+        return
+    jobs = get_commit_jobs(project_id, last_commit['id'])
+    try:
+        mc_check_job = next(job for job in jobs
+                            if job['name'] == 'merge_conflict_check')
+    except StopIteration:
+        return
+    print(f'Retrying merge conflict check job for branch '
+          f'{branch_name}')
+    retry_job(project_id, mc_check_job['id'])
+
+
 def get_related_issue_iid(mr):
     branch = mr['source_branch']
     try:
@@ -327,6 +389,30 @@ def get_related_merge_requests(project_id, issue_iid):
     url = '{}/projects/{}/issues/{}/related_merge_requests'.format(
             API_PREFIX, project_id, issue_iid)
     res = session.get(url)
+    res.raise_for_status()
+    return res.json()
+
+
+def get_branch(project_id, branch_name):
+    url = f'{API_PREFIX}/projects/{project_id}/repository/branches/{branch_name}'
+    res = session.get(url)
+    if res.status_code == 404:
+        return
+    res.raise_for_status()
+    return res.json()
+
+
+def get_commit_jobs(project_id, commit_id):
+    url = (f'{API_PREFIX}/projects/{project_id}/repository/'
+           f'commits/{commit_id}/statuses')
+    res = session.get(url)
+    res.raise_for_status()
+    return res.json()
+
+
+def retry_job(project_id, job_id):
+    url = f'{API_PREFIX}/projects/{project_id}/jobs/{job_id}/retry'
+    res = session.post(url)
     res.raise_for_status()
     return res.json()
 
