@@ -123,6 +123,9 @@ def handle_push(push):
             branch_name.replace('***REMOVED***', '***REMOVED***')
         ]
     elif '***REMOVED***' in branch_name:
+        # keep ***REMOVED*** first so ensure_upper_version_is_created
+        # won't create a MR based on another MR automatically
+        # created by gorrabot
         parent_branches = [
             branch_name.replace('***REMOVED***', '***REMOVED***'),
             branch_name.replace('***REMOVED***', '***REMOVED***'),
@@ -134,6 +137,12 @@ def handle_push(push):
         retry_merge_conflict_check_of_branch(
             push['project_id'], parent_branch_name
         )
+
+    ensure_upper_version_is_created(
+        push['project_id'],
+        branch_name,
+        parent_branches
+    )
 
     return 'OK'
 
@@ -211,6 +220,16 @@ def comment_mr(project_id, iid, body, can_be_duplicated=True):
     url = mr_url(project_id, iid) + '/notes'
     data = {"body": body}
     res = session.post(url, json=data)
+    res.raise_for_status()
+    return res.json()
+
+
+def create_mr(project_id, mr_data):
+    url = (
+        f"{API_PREFIX}/projects/{project_id}/"
+        f"merge_requests"
+    )
+    res = session.post(url, json=mr_data)
     res.raise_for_status()
     return res.json()
 
@@ -302,9 +321,22 @@ def fill_fields_based_on_issue(mr):
         return
 
     data = {}
-    if mr['milestone_id'] is None and issue.get('milestone'):
+
+    if 'milestone_id' in mr:
+        # This comes from the webhook data
+        milestone_id = mr['milestone_id']
+    else:
+        milestone_id = mr['milestone'] and mr['milestone']['id']
+
+    if 'assignee_id' in mr:
+        # This comes from the webhook data
+        assignee_id = mr['assignee_id']
+    else:
+        assignee_id = mr['assignee'] and mr['assignee']['id']
+
+    if milestone_id is None and issue.get('milestone'):
         data['milestone_id'] = issue['milestone']['id']
-    if mr['assignee_id'] is None and len(issue.get('assignees', [])) == 1:
+    if assignee_id is None and len(issue.get('assignees', [])) == 1:
         data['assignee_id'] = issue['assignees'][0]['id']
 
     if data:
@@ -389,6 +421,78 @@ def retry_conflict_check_of_mrs_with_target_branch(project_id, target_branch):
             project_id,
             mr['source_branch']
         )
+
+
+def ensure_upper_version_is_created(project_id, branch_name, parent_branches):
+    """If there exists a MR with a source branch that is in
+    parent_branches and there is no MR whose source branch is
+    branch_name, create a new MR inheriting from the parent MR.
+    
+    Exclude all closed MRs from this logic.
+    """
+
+    mrs_for_this_branch = get_merge_requests(
+        project_id,
+        {'source_branch': branch_name}
+    )
+    if any(mr['state'] != 'closed' for mr in mrs_for_this_branch):
+        return
+
+
+    parent_mr = None
+    for parent_branch_name in parent_branches:
+        merge_requests = get_merge_requests(
+            project_id,
+            {'source_branch': parent_branch_name}
+        )
+        merge_requests = [
+            mr for mr in merge_requests
+            if mr['state'] != 'closed'
+        ]
+        if len(merge_requests) == 1:
+            # If the length is greater than 1, I don't know which branch should
+            # I use.
+            parent_mr = merge_requests[0]
+            break
+
+    if parent_mr is None:
+        return
+
+    mr_data = create_similar_mr(parent_mr, branch_name)
+    new_mr = create_mr(parent_mr['source_project_id'], mr_data)
+    fill_fields_based_on_issue(new_mr)
+
+
+def create_similar_mr(parent_mr, source_branch):
+    assert '***REMOVED***' in source_branch or '***REMOVED***' in source_branch
+    if '***REMOVED***' in source_branch:
+        target_branch = '***REMOVED***/dev'
+    elif '***REMOVED***' in source_branch:
+        target_branch = '***REMOVED***/dev'
+    new_title = (
+        f"{parent_mr['title']} ({target_branch.replace('/dev','')} edition)"
+    )
+    new_description = (
+        f"""
+{parent_mr['description']}
+
+Created with <3 by @gorrabot, based on merge request
+!{parent_mr['iid']}
+        """
+    )
+
+    new_labels = set(parent_mr['labels'])
+    new_labels.add('no-changelog')
+    new_labels = list(new_labels)
+
+    mr = {
+        'source_branch': source_branch,
+        'target_branch': target_branch,
+        'title': new_title,
+        'description': new_description,
+        'labels': new_labels
+    }
+    return mr
 
 
 def filter_current_or_upcoming_mrs(merge_requests):
