@@ -486,6 +486,8 @@ def create_similar_mr(parent_mr, source_branch):
     new_title = (
         f"{parent_mr['title']} ({target_branch.replace('/dev','')} edition)"
     )
+    if not new_title.startswith('WIP: '):
+        new_title = 'WIP: ' + new_title
     new_description = (
         f"""
 {parent_mr['description']}
