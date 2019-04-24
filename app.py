@@ -41,6 +41,11 @@ MSG_NEW_MR_CREATED = (
     'creado. Me tomé la molestia de crearlo por vos, usando la información '
     'de un merge request de ***REMOVED***.'
 )
+MSG_CHECK_SUPERIOR_MR = (
+    'Noté que mergeaste el branch que implementa esto para una versión '
+    'anterior (***REMOVED*** o ***REMOVED***). Hay que mergear este MR también para evitar que '
+    'haya conflictos entre ***REMOVED***/dev, ***REMOVED***/dev y ***REMOVED***/dev.'
+)
 
 branch_regex = r'***REMOVED***'
 
@@ -85,6 +90,8 @@ def homepage():
 
     if mr['work_in_progress']:
         return 'Ignoring WIP MR'
+    if mr['state'] == 'merged':
+        notify_unmerged_superior_mrs(mr)
     if mr['state'] in ('merged', 'closed'):
         return 'Ignoring closed MR'
 
@@ -475,6 +482,53 @@ def ensure_upper_version_is_created(project_id, branch_name, parent_branches):
         new_mr['iid'],
         f'@{username}: {MSG_NEW_MR_CREATED}'
     )
+
+
+def notify_unmerged_superior_mrs(mr):
+    """Warn the user who merged mr if there also are ***REMOVED*** or ***REMOVED*** merge
+    requests for the same issue."""
+    assert mr['state'] == 'merged'
+    issue_iid = get_related_issue_iid(mr)
+    project_id = mr['source_project_id']
+    if issue_iid is None:
+        return
+
+    related_mrs = get_related_merge_requests(
+        project_id, issue_iid)
+    related_mrs = [rmr for rmr in related_mrs
+                   if rmr['state'] not in ('merged', 'closed')]
+
+    if '***REMOVED***' in mr['source_branch']:
+        expected_versions = ['***REMOVED***', '***REMOVED***']
+    elif '***REMOVED***' in mr['source_branch']:
+        expected_versions = ['***REMOVED***']
+
+    global_branch_name = remove_version(mr['source_branch'])
+
+    # Discard MRs with different branch names (besides ***REMOVED***/***REMOVED***/***REMOVED***)
+    related_mrs = [
+        rmr for rmr in related_mrs
+        if remove_version(rmr['source_branch']) == global_branch_name
+    ]
+
+    # Discard MRs that are not of expected_versions
+    related_mrs = [
+        rmr for rmr in related_mrs
+        if any(version in rmr['source_branch']
+               for version in expected_versions)
+    ]
+
+    for rmr in related_mrs:
+        comment_mr(
+            project_id,
+            rmr['iid'],
+            f'@{get_username(rmr)}: {MSG_CHECK_SUPERIOR_MR}',
+            can_be_duplicated=False,
+        )
+
+
+def remove_version(branch: str):
+    return branch.replace('***REMOVED***', 'xxx').replace('***REMOVED***', 'xxx').replace('***REMOVED***', 'xxx')
 
 
 def create_similar_mr(parent_mr, source_branch):
