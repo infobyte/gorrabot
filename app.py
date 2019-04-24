@@ -36,6 +36,11 @@ MSG_BAD_BRANCH_NAME = (
     '\n\n'
     'Esta te la dejo pasar, la próxima recordá usar esta nomenclatura!'
 )
+MSG_NEW_MR_CREATED = (
+    'Vi que pusheaste a este branch pero no había ningún merge request '
+    'creado. Me tomé la molestia de crearlo por vos, usando la información '
+    'de un merge request de ***REMOVED***.'
+)
 
 branch_regex = r'***REMOVED***'
 
@@ -148,8 +153,11 @@ def handle_push(push):
 
 
 def get_username(data):
-    if 'assignee' in data:
+    if data.get('assignee'):
         return data['assignee']['username']
+    elif data.get('author'):
+        return data['author']['username']
+
     user_id = data['object_attributes']['author_id']
     res = session.get(API_PREFIX + '/users/{}'.format(user_id))
     res.raise_for_status()
@@ -461,6 +469,12 @@ def ensure_upper_version_is_created(project_id, branch_name, parent_branches):
     mr_data = create_similar_mr(parent_mr, branch_name)
     new_mr = create_mr(parent_mr['source_project_id'], mr_data)
     fill_fields_based_on_issue(new_mr)
+    username = get_username(parent_mr)
+    comment_mr(
+        project_id,
+        new_mr['iid'],
+        f'@{username}: {MSG_NEW_MR_CREATED}'
+    )
 
 
 def create_similar_mr(parent_mr, source_branch):
