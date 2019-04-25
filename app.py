@@ -197,6 +197,12 @@ def get_mr_changes(project_id, iid):
     res.raise_for_status()
     return res.json()['changes']
 
+def get_mr(project_id, iid):
+    url = f'{API_PREFIX}/projects/{project_id}/merge_requests/{iid}'
+    res = session.get(url)
+    res.raise_for_status()
+    return res.json()
+
 
 def get_mr_last_commit(mr):
     project_id = mr['source_project_id']
@@ -518,11 +524,15 @@ def notify_unmerged_superior_mrs(mr):
                for version in expected_versions)
     ]
 
+    # The data from the webhook doesn't contain merged_by
+    mr = get_mr(project_id, mr['iid'])
+
+    username = mr['merged_by']['username']
     for rmr in related_mrs:
         comment_mr(
             project_id,
             rmr['iid'],
-            f'@{get_username(rmr)}: {MSG_CHECK_SUPERIOR_MR}',
+            f'@{username}: {MSG_CHECK_SUPERIOR_MR}',
             can_be_duplicated=False,
         )
 
