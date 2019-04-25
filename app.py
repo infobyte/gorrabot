@@ -150,11 +150,16 @@ def handle_push(push):
             push['project_id'], parent_branch_name
         )
 
-    ensure_upper_version_is_created(
-        push['project_id'],
-        branch_name,
-        parent_branches
-    )
+    if push['checkout_sha'] is not None:
+        # Deleting a branch triggers a push event, and I don't want
+        # that to create a new MR. So check that the branch wasn't
+        # deleted by checking the checkout_sha.
+        # See https://gitlab.com/gitlab-org/gitlab-ce/issues/54216
+        ensure_upper_version_is_created(
+            push['project_id'],
+            branch_name,
+            parent_branches
+        )
 
     return 'OK'
 
