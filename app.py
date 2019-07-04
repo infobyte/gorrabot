@@ -39,7 +39,9 @@ MSG_BAD_BRANCH_NAME = (
 MSG_NEW_MR_CREATED = (
     'Vi que pusheaste a este branch pero no había ningún merge request '
     'creado. Me tomé la molestia de crearlo por vos, usando la información '
-    'de un merge request de ***REMOVED***.'
+    'de un merge request de ***REMOVED***. Si tenés que hacer más cambios (es decir, '
+    'no se trata de un simple merge), poné el MR en WIP para aclarar que '
+    'todavía no está terminado'.
 )
 MSG_CHECK_SUPERIOR_MR = (
     'Noté que mergeaste el branch que implementa esto para una versión '
@@ -555,8 +557,8 @@ def create_similar_mr(parent_mr, source_branch):
     new_title = (
         f"{parent_mr['title']} ({target_branch.replace('/dev','')} edition)"
     )
-    if not new_title.startswith('WIP: '):
-        new_title = 'WIP: ' + new_title
+    # if not new_title.startswith('WIP: '):
+    #     new_title = 'WIP: ' + new_title
     new_description = (
         f"""
 {parent_mr['description']}
