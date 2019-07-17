@@ -55,6 +55,11 @@ session = requests.Session()
 session.headers['Private-Token'] = TOKEN
 
 
+@app.route('/status')
+def status():
+    return "OK"
+
+
 @app.route('/webhook', methods=['POST'])
 def homepage():
     if request.headers.get('X-Gitlab-Token') != REQUEST_TOKEN:
