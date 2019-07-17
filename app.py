@@ -41,7 +41,7 @@ MSG_NEW_MR_CREATED = (
     'creado. Me tomé la molestia de crearlo por vos, usando la información '
     'de un merge request de ***REMOVED***. Si tenés que hacer más cambios (es decir, '
     'no se trata de un simple merge), poné el MR en WIP para aclarar que '
-    'todavía no está terminado'.
+    'todavía no está terminado.'
 )
 MSG_CHECK_SUPERIOR_MR = (
     'Noté que mergeaste el branch que implementa esto para una versión '
