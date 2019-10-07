@@ -27,6 +27,10 @@ Get the issue related to a merge request by inspecting its source branch name
 (e.g `tkt_***REMOVED***_1234_some_description`). Then, when the status of the MR is
 updated, also update the labels and status of the related issue.
 
+Gorrabot also adds a `Closes #1234` text in the description, so GitLab closes
+the related issue when the MR is merged. Also, when a user sees the issue
+details he/she will have a link to its corresponding merge request.
+
 Example actions (see the code of `sync_related_issue` `app.py` for the exact
 list):
 
@@ -66,6 +70,32 @@ the source and target branches of the MR.
 Like with the previous feature, this check will just leave a comment in the
 merge request if doesn't pass, so the user could avoid this the next time.
 There is no need to set it to WIP.
+
+## Automatic retry of merge conflict jobs
+
+When a user pushes to a ***REMOVED*** branch, retry the merge conflict checker job on
+its corresponding ***REMOVED*** branch, so we can find out about merge conflicts as
+early as possible.
+
+Also, pushes to `***REMOVED***/dev`, `***REMOVED***/dev` and `***REMOVED***/dev` will retry all merge
+conflict checker jobs of open merges request whose target branch is the same as
+the pushed branch.
+
+## Automatic creation of upper versions MRs
+
+When a MR of a ***REMOVED*** feature is generating conflicts with ***REMOVED***, the suggested
+way to proceed is to create a branch of ***REMOVED***/dev that fixes the conflict.
+
+Creating another merge request for the ***REMOVED*** feature is tedious, so when the
+user pushes the ***REMOVED*** branch, Gorrabot will detect this is an "upper version
+MR". Then, it will create a new MR with the same content as the ***REMOVED*** MR, but
+with a `(***REMOVED*** edition)` added in the title to properly differentiate both MRs.
+
+The same thing happens when a ***REMOVED*** branch conflicts with ***REMOVED***.
+
+Gorrabot will also notify the user the MR was created. And when the ***REMOVED*** MR is
+merged, it will notify the user who merged it so they don't forget about
+merging the upper version MR too.
 
 # Summary of special labels
 
