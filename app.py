@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+from urllib.parse import quote
 from flask import Flask, request, abort
 app = Flask(__name__)
 
@@ -634,7 +635,7 @@ def get_related_merge_requests(project_id, issue_iid):
 
 
 def get_branch(project_id, branch_name):
-    url = f'{API_PREFIX}/projects/{project_id}/repository/branches/{branch_name}'
+    url = f'{API_PREFIX}/projects/{project_id}/repository/branches/{quote(branch_name, safe="")}'
     res = session.get(url)
     if res.status_code == 404:
         return
