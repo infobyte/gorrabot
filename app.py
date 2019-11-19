@@ -12,6 +12,9 @@ SELF_USERNAME = os.environ['GITLAB_BOT_USERNAME']
 
 API_PREFIX = 'https://gitlab.com/api/v4'
 
+OLD_MEMBERS = [
+    '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***']
+
 MSG_MISSING_CHANGELOG = (
     'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
     'debes'
@@ -50,6 +53,35 @@ MSG_CHECK_SUPERIOR_MR = (
     'anterior (***REMOVED*** o ***REMOVED***). Hay que mergear este MR también para evitar que '
     'haya conflictos entre ***REMOVED***/dev, ***REMOVED***/dev y ***REMOVED***/dev.'
 )
+MSG_STALE_MR = """
+Noté que este merge request está en WIP y sin actividad hace bastante tiempo.
+Para evitar que quede obsoleto e inmergeable, estaría bueno mirarlo. Te
+recomiendo proceder con alguna de estas acciones:
+
+* Si ya está listo para mergear, sacale el `WIP: ` del título y esperá a que
+  reciba feedback
+* Si se trata de un merge request experimental o pensado a largo plazo, cambiá
+  el nombre del source branch de `tkt_....` a `exp_....` para que lo tenga en
+  cuenta
+* Si te parece que los cambios no son más requeridos, cerrá el merge request
+* En caso contrario, hacé las modificaciones que sean necesarias y sacarle
+  el WIP
+* También se puede agregar el label especial `no-me-apures` para que no vuelva
+  a mostrar este mensaje en este merge request. Esto es una inhibición de mis
+  gorra-poderes así que prefiero que no se abuse de esta opción
+"""
+MSG_MR_OLD_MEMBER = (
+    '@***REMOVED***: Este merge request no está listo y está asignado a un usuario '
+    'que ya no forma parte del equipo. Habría que cerrarlo o reasignárselo a '
+    'alguien más'
+)
+
+# Define inactivity as a merge request whose last commit is older than
+# now() - inactivity_time
+inactivity_time = datetime.timedelta(days=30)
+
+# Time to wait until a new message indicating the MR is stale is created
+stale_mr_message_interval = datetime.timedelta(days=7)
 
 branch_regex = r'***REMOVED***'
 
@@ -265,7 +297,8 @@ def comment_mr(project_id, iid, body, can_be_duplicated=True, min_time_between_c
                     comment['created_at'])
             return time_passed < min_time_between_comments
 
-        if any(is_recent_comment(comment) and search_title in comment['body']
+        if any(is_recent_comment(comment) and
+               search_title.strip() in comment['body'].strip()
                for comment in comments):
             return
 
@@ -647,6 +680,29 @@ def get_merge_requests(project_id, filters={}):
     res = session.get(url, params=filters)
     res.raise_for_status()
     return res.json()
+
+
+def get_staled_wip_merge_requests(project_id):
+    filters = {
+        'scope': 'all',
+        'wip': 'yes',
+        'state': 'opened',
+        'per_page': 100,
+    }
+    mrs = get_merge_requests(project_id, filters)
+    for mr in mrs:
+        if 'no-me-apures' in mr['labels']:
+            continue
+        if mr['source_branch'] and mr['source_branch'].startswith('exp_'):
+            continue
+        last_commit = get_mr_last_commit(mr)
+        if last_commit is None:
+            # There is no activity in the MR, use the MR's creation date
+            created_at = parse_api_date(mr['created_at'])
+        else:
+            created_at = parse_api_date(last_commit['created_at'])
+        if datetime.datetime.utcnow() - created_at > inactivity_time:
+            yield mr
 
 
 def get_related_merge_requests(project_id, issue_iid):
