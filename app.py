@@ -1,5 +1,6 @@
 import os
 import re
+import datetime
 import requests
 from urllib.parse import quote
 from flask import Flask, request, abort
@@ -239,7 +240,7 @@ def get_changed_files(changes):
     return set(change['new_path'] for change in changes)
 
 
-def comment_mr(project_id, iid, body, can_be_duplicated=True):
+def comment_mr(project_id, iid, body, can_be_duplicated=True, min_time_between_comments=None):
     if not can_be_duplicated:
         # Ugly hack to drop user mentions from body
         search_title = body.split(': ', 1)[-1]
@@ -250,12 +251,34 @@ def comment_mr(project_id, iid, body, can_be_duplicated=True):
                 for comment in comments):
             # This comment has already been made
             return
+    elif min_time_between_comments is not None:
+        # The comment can be duplicated, but to avoid flooding, wait at least
+        # min_time_between_comments to duplicate them
+        # Ugly hack to drop user mentions from body
+        search_title = body.split(': ', 1)[-1]
+        res = session.get(mr_url(project_id, iid) + '/notes')
+        res.raise_for_status()
+        comments = res.json()
+
+        def is_recent_comment(comment):
+            time_passed = datetime.datetime.utcnow() - parse_api_date(
+                    comment['created_at'])
+            return time_passed < min_time_between_comments
+
+        if any(is_recent_comment(comment) and search_title in comment['body']
+               for comment in comments):
+            return
 
     url = mr_url(project_id, iid) + '/notes'
     data = {"body": body}
     res = session.post(url, json=data)
     res.raise_for_status()
     return res.json()
+
+
+def parse_api_date(date):
+    assert date.endswith('Z')
+    return datetime.datetime.fromisoformat(date[:-1])
 
 
 def create_mr(project_id, mr_data):
