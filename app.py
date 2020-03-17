@@ -84,7 +84,7 @@ inactivity_time = datetime.timedelta(days=30)
 stale_mr_message_interval = datetime.timedelta(days=7)
 
 # Time to wait until a new message indicating the MR is stale is created
-decision_issue_message_interval = datetime.timedelta(days=0)#7)
+decision_issue_message_interval = datetime.timedelta(days=3)
 
 branch_regex = r'***REMOVED***'
 
@@ -221,7 +221,7 @@ def get_username(data):
 
 
 def get_usernames_from_mr_or_issue(data):
-    if len(data.get('assignees')) > 0:
+    if len(data.get('assignees')):
         return [assignee['username'] for assignee in data['assignees']]
     elif data.get('author'):
         return [data['author']['username']]
@@ -746,8 +746,8 @@ def get_decision_issues(project_id):
     for issue in issues:
         if 'no-me-apures' in issue['labels']:
             continue
-        created_at = parse_api_date(issue['updated_at'])
-        if datetime.datetime.utcnow() - created_at > decision_issue_message_interval:
+        updated_at = parse_api_date(issue['updated_at'])
+        if datetime.datetime.utcnow() - updated_at > decision_issue_message_interval:
             yield issue
 
 
