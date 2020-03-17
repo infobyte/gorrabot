@@ -57,8 +57,8 @@ gitlab_to_slack_user = {
 notify_dict = {}
 
 STALE_MR = "stale_mr"
-WAITING_DECISION = "waiting_decision"
-ACCEPTED_ISSUES = "accepted_issues"
+WAITING_DECISION = "waiting-decision"
+ACCEPTED_ISSUES = "accepted-issues"
 
 BASE_NOTIFY = {
     STALE_MR: [],
