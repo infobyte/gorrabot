@@ -2,7 +2,7 @@ import os
 import re
 import requests
 import sys
-import copy
+from collections import defaultdict
 
 from app import (
     OLD_MEMBERS,
@@ -54,25 +54,13 @@ gitlab_to_slack_user = {
     "***REMOVED***": "***REMOVED***"
 }
 
-notify_dict = {}
-
 STALE_MR = "stale_mr"
 WAITING_DECISION = "waiting-decision"
 ACCEPTED_ISSUES = "accepted-issues"
 
-BASE_NOTIFY = {
-    STALE_MR: [],
-    WAITING_DECISION: [],
-    ACCEPTED_ISSUES: [],
-}
+notify_dict = defaultdict(lambda: {STALE_MR: [], WAITING_DECISION: [], ACCEPTED_ISSUES: []})
 
 MAX_ACCEPTED = 2
-
-
-def check_notify(slack_username: str):
-    if slack_username not in notify_dict:
-        notify_dict[slack_username] = copy.deepcopy(BASE_NOTIFY)
-    return slack_username
 
 
 def to_slack_user(user: str):
@@ -104,7 +92,7 @@ def send_message(slack_user: str, text: str):
         print(f"Ask for send message to user: {slack_user}, who is not in the slack api response")
         return None
     else:
-        params={
+        params = {
             "channel" : slack_users_data[slack_user]['id'],
             "text": text,
             "as_user": True
@@ -131,7 +119,6 @@ for project_id in project_ids:
 
             for username in usernames:
                 if username not in OLD_MEMBERS:
-                    username = check_notify(username)
                     notify_dict[username][function_dict["key"]].append(elem['web_url'])
                 else:
                     # ?
