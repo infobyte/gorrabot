@@ -93,14 +93,10 @@ def get_waiting_users(issue):
 
 res = slack_session.get("https://slack.com/api/users.list")
 
-if res.status_code == 200:
-    data = res.json()
-    assert data["ok"]
-    slack_users_data = {elem["name"]: elem for elem in data["members"] if not elem['deleted'] and not elem["is_bot"]}
-else:
-    print("CAN NOT ACCESS SLACK API")
-    exit(1)
-
+res.raise_for_status()
+data = res.json()
+assert data["ok"]
+slack_users_data = {elem["name"]: elem for elem in data["members"] if not elem['deleted'] and not elem["is_bot"]}
 
 def send_message(slack_user: str, text: str):
     if slack_user not in slack_users_data:
