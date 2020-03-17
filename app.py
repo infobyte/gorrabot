@@ -83,6 +83,9 @@ inactivity_time = datetime.timedelta(days=30)
 # Time to wait until a new message indicating the MR is stale is created
 stale_mr_message_interval = datetime.timedelta(days=7)
 
+# Time to wait until a new message indicating the MR is stale is created
+decision_issue_message_interval = datetime.timedelta(days=3)
+
 branch_regex = r'***REMOVED***'
 
 session = requests.Session()
@@ -215,6 +218,18 @@ def get_username(data):
     res = session.get(API_PREFIX + '/users/{}'.format(user_id))
     res.raise_for_status()
     return res.json()['username']
+
+
+def get_usernames_from_mr_or_issue(data):
+    if len(data.get('assignees')):
+        return [assignee['username'] for assignee in data['assignees']]
+    elif data.get('author'):
+        return [data['author']['username']]
+
+    user_id = data['object_attributes']['author_id']
+    res = session.get(API_PREFIX + '/users/{}'.format(user_id))
+    res.raise_for_status()
+    return [res.json()['username']]
 
 
 def has_label(obj, label_name):
@@ -665,6 +680,13 @@ def get_related_issue_iid(mr):
     return int(iid)
 
 
+def get_issues(project_id, filters={}):
+    url = f'{API_PREFIX}/projects/{project_id}/issues'
+    res = session.get(url, params=filters)
+    res.raise_for_status()
+    return res.json()
+
+
 def get_issue(project_id, iid):
     url = '{}/projects/{}/issues/{}'.format(
             API_PREFIX, project_id, iid)
@@ -711,6 +733,32 @@ def get_related_merge_requests(project_id, issue_iid):
     res = session.get(url)
     res.raise_for_status()
     return res.json()
+
+
+def get_decision_issues(project_id):
+    filters = {
+        'scope': 'all',
+        'state': 'opened',
+        'labels': 'waiting-decision',
+        'per_page': 100,
+    }
+    issues = get_issues(project_id, filters)
+    for issue in issues:
+        if 'no-me-apures' in issue['labels']:
+            continue
+        updated_at = parse_api_date(issue['updated_at'])
+        if datetime.datetime.utcnow() - updated_at > decision_issue_message_interval:
+            yield issue
+
+
+def get_accepted_issues(project_id):
+    filters = {
+        'scope': 'all',
+        'labels': 'Accepted',
+        'state': 'opened',
+        'per_page': 100,
+    }
+    return get_issues(project_id, filters)
 
 
 def get_branch(project_id, branch_name):
