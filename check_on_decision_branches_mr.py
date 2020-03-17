@@ -127,17 +127,22 @@ for project_id in project_ids:
 
 for username in notify_dict:
     text = "H0L4! Este es tu reporte que te da tu amigo, gorrabot :gorrabot2:!\n"
+    send = False
     if len(notify_dict[username][STALE_MR]) > 0:
         text += "Algunos de tus MR estan estancados :warning:, estos son!:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_MR]])
+        send = True
     else:
         text += "No tenes MR estancados :ditto:!\n"
     if len(notify_dict[username][ACCEPTED_ISSUES]) > MAX_ACCEPTED:
         text += f"Tenes mas de {MAX_ACCEPTED} issues en 'Accepted' :x:, fijate:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][ACCEPTED_ISSUES]])
+        send = True
     if len(notify_dict[username][WAITING_DECISION]) > 0:
         text += "Hay issues esperando por tu decision, por favor revisalos, esto bloquea al equipo dev:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][WAITING_DECISION]])
+        send = True
     text += "Nos vemos en el proximo reporte :ninja:"
 
-    send_message(username, text)
+    if send:
+        send_message(username, text)
