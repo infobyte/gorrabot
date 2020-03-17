@@ -74,7 +74,7 @@ def get_waiting_users(issue):
     users = []
     if len(match) > 0:
         users = [user.strip() for user in match[0][4:].split(",")]
-        users = [to_slack_user(user[1:]) if user[0] == "@" else user for user in users]
+        users = [to_slack_user(user[1:]) if user[0] == "@" else user for user in users if len(user) > 0]
 
     return users
 
@@ -140,5 +140,4 @@ for username in notify_dict:
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][WAITING_DECISION]])
     text += "Nos vemos en el proximo reporte :ninja:"
 
-    if username == "***REMOVED***":
-        send_message(username, text)
+    send_message(username, text)
