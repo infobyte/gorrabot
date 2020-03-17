@@ -98,18 +98,18 @@ data = res.json()
 assert data["ok"]
 slack_users_data = {elem["name"]: elem for elem in data["members"] if not elem['deleted'] and not elem["is_bot"]}
 
+
 def send_message(slack_user: str, text: str):
     if slack_user not in slack_users_data:
         print(f"Ask for send message to user: {slack_user}, who is not in the slack api response")
         return None
     else:
-        slack_session.params["channel"] = slack_users_data[slack_user]['id']
-        slack_session.params["text"] = text
-        slack_session.params["as_user"] = True
-        res = slack_session.post("https://slack.com/api/chat.postMessage")
-        del slack_session.params["channel"]
-        del slack_session.params["text"]
-        del slack_session.params["as_user"]
+        params={
+            "channel" : slack_users_data[slack_user]['id'],
+            "text": text,
+            "as_user": True
+        }
+        res = slack_session.post("https://slack.com/api/chat.postMessage", params=params)
         return res
 
 
