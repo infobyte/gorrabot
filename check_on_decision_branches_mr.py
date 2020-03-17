@@ -57,12 +57,12 @@ gitlab_to_slack_user = {
 notify_dict = {}
 
 STALE_MR = "stale_mr"
-DECISION_WAITING = "decision_waiting"
+WAITING_DECISION = "waiting_decision"
 ACCEPTED_ISSUES = "accepted_issues"
 
 BASE_NOTIFY = {
     STALE_MR: [],
-    DECISION_WAITING: [],
+    WAITING_DECISION: [],
     ACCEPTED_ISSUES: [],
 }
 
@@ -125,7 +125,7 @@ for project_id in project_ids:
 
     checking_functions = [
         {"elem_picker": get_staled_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_MR},
-        {"elem_picker": get_decision_issues, "user_picker": get_waiting_users, "key": DECISION_WAITING},
+        {"elem_picker": get_decision_issues, "user_picker": get_waiting_users, "key": WAITING_DECISION},
         {"elem_picker": get_accepted_issues, "user_picker": get_slack_user_from_mr_or_issue, "key": ACCEPTED_ISSUES}
     ]
 
@@ -152,9 +152,9 @@ for username in notify_dict:
     if len(notify_dict[username][ACCEPTED_ISSUES]) > MAX_ACCEPTED:
         text += f"Tenes mas de {MAX_ACCEPTED} issues en 'Accepted' :x:, fijate:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][ACCEPTED_ISSUES]])
-    if len(notify_dict[username][DECISION_WAITING]) > 0:
+    if len(notify_dict[username][WAITING_DECISION]) > 0:
         text += "Hay issues esperando por tu decision, por favor revisalos, esto bloquea al equipo dev:\n"
-        text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][DECISION_WAITING]])
+        text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][WAITING_DECISION]])
     text += "Nos vemos en el proximo reporte :ninja:"
 
     if username == "***REMOVED***":
