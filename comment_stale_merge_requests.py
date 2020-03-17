@@ -8,7 +8,6 @@ from app import (
     MSG_STALE_MR,
     OLD_MEMBERS,
     stale_mr_message_interval,
-    get_mr, #TODO remove
 )
 
 project_id = int(sys.argv[1])
