@@ -155,5 +155,5 @@ for username in notify_dict:
 
     text += "Nos vemos en el proximo reporte :ninja:"
 
-    if send and username in REPORT_USERS:
+    if send:
         send_message(username, text)
