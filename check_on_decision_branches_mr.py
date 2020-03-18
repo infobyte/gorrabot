@@ -2,6 +2,7 @@ import os
 import re
 import requests
 import sys
+import json
 from collections import defaultdict
 
 from app import (
@@ -13,6 +14,7 @@ from app import (
 )
 
 BOT_TOKEN = os.environ['SLACK_BOT_TOKEN']
+REPORT_USERS = ["***REMOVED***"]
 
 project_ids = [int(i) for i in sys.argv[1].split(',')]
 
@@ -129,20 +131,29 @@ for username in notify_dict:
     text = "H0L4! Este es tu reporte que te da tu amigo, gorrabot :gorrabot2:!\n"
     send = False
     if len(notify_dict[username][STALE_MR]) > 0:
-        text += "Algunos de tus MR estan estancados :warning:, estos son!:\n"
+        text += ":warning: Algunos de tus MR estan estancados, estos son!:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_MR]])
         send = True
     else:
         text += "No tenes MR estancados :ditto:!\n"
     if len(notify_dict[username][ACCEPTED_ISSUES]) > MAX_ACCEPTED:
-        text += f"Tenes mas de {MAX_ACCEPTED} issues en 'Accepted' :x:, fijate:\n"
+        text += f":x: Tenes mas de {MAX_ACCEPTED} issues en 'Accepted', fijate:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][ACCEPTED_ISSUES]])
         send = True
     if len(notify_dict[username][WAITING_DECISION]) > 0:
         text += "Hay issues esperando por tu decision, por favor revisalos, esto bloquea al equipo dev:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][WAITING_DECISION]])
         send = True
+    if username in REPORT_USERS:
+        report = json.dumps({
+            report_user: {
+                key: len(notify_dict[report_user][key])
+                for key in notify_dict[report_user]
+            } for report_user in notify_dict
+        }, indent=4)
+        text += f"Te mando el resumen en un json: ```{report}```\n"
+
     text += "Nos vemos en el proximo reporte :ninja:"
 
-    if send:
+    if send and username in REPORT_USERS:
         send_message(username, text)
