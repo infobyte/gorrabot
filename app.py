@@ -519,7 +519,9 @@ def retry_conflict_check_of_mrs_with_target_branch(project_id, target_branch):
         project_id,
         {'target_branch': target_branch, 'state': 'opened'}
     )
-    merge_requests = filter_current_or_upcoming_mrs(merge_requests)
+
+    # This will ignore merge requests of old milestones
+    # merge_requests = filter_current_or_upcoming_mrs(merge_requests)
 
     for mr in merge_requests:
         retry_merge_conflict_check_of_branch(
