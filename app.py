@@ -84,7 +84,7 @@ inactivity_time = datetime.timedelta(days=30)
 stale_mr_message_interval = datetime.timedelta(days=7)
 
 # Time to wait until a new message indicating the MR is stale is created
-decision_issue_message_interval = datetime.timedelta(days=3)
+decision_issue_message_interval = datetime.timedelta(days=0)
 
 branch_regex = r'***REMOVED***'
 
@@ -706,10 +706,10 @@ def get_merge_requests(project_id, filters={}):
     return res.json()
 
 
-def get_staled_wip_merge_requests(project_id):
+def get_staled_merge_requests(project_id, wip=None):
     filters = {
         'scope': 'all',
-        'wip': 'yes',
+        'wip': wip,
         'state': 'opened',
         'per_page': 100,
     }

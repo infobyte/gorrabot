@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from app import (
     OLD_MEMBERS,
-    get_staled_wip_merge_requests,
+    get_staled_merge_requests,
     get_decision_issues,
     get_usernames_from_mr_or_issue,
     get_accepted_issues
@@ -110,7 +110,7 @@ def get_slack_user_from_mr_or_issue(elem):
 for project_id in project_ids:
 
     checking_functions = [
-        {"elem_picker": get_staled_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_MR},
+        {"elem_picker": get_staled_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_MR},
         {"elem_picker": get_decision_issues, "user_picker": get_waiting_users, "key": WAITING_DECISION},
         {"elem_picker": get_accepted_issues, "user_picker": get_slack_user_from_mr_or_issue, "key": ACCEPTED_ISSUES}
     ]
