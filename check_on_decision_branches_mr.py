@@ -56,11 +56,12 @@ gitlab_to_slack_user = {
     "***REMOVED***": "***REMOVED***"
 }
 
-STALE_MR = "stale_mr"
+STALE_WIP = "stale_wip"
+STALE_NO_WIP = "stale_no_wip"
 WAITING_DECISION = "waiting-decision"
 ACCEPTED_ISSUES = "accepted-issues"
 
-notify_dict = defaultdict(lambda: {STALE_MR: [], WAITING_DECISION: [], ACCEPTED_ISSUES: []})
+notify_dict = defaultdict(lambda: {STALE_WIP: [], STALE_NO_WIP: [], WAITING_DECISION: [], ACCEPTED_ISSUES: []})
 
 MAX_ACCEPTED = 2
 
@@ -107,10 +108,19 @@ def get_slack_user_from_mr_or_issue(elem):
     return [to_slack_user(user) for user in get_usernames_from_mr_or_issue(elem)]
 
 
+def get_staled_wip_merge_requests(project_id):
+    return get_staled_merge_requests(project_id,'yes')
+
+
+def get_staled_no_wip_merge_requests(project_id):
+    return get_staled_merge_requests(project_id,'no')
+
+
 for project_id in project_ids:
 
     checking_functions = [
-        {"elem_picker": get_staled_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_MR},
+        {"elem_picker": get_staled_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_WIP},
+        {"elem_picker": get_staled_no_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_NO_WIP},
         {"elem_picker": get_decision_issues, "user_picker": get_waiting_users, "key": WAITING_DECISION},
         {"elem_picker": get_accepted_issues, "user_picker": get_slack_user_from_mr_or_issue, "key": ACCEPTED_ISSUES}
     ]
@@ -130,12 +140,20 @@ for project_id in project_ids:
 for username in notify_dict:
     text = "H0L4! Este es tu reporte que te da tu amigo, gorrabot :gorrabot2:!\n"
     send = False
-    if len(notify_dict[username][STALE_MR]) > 0:
-        text += ":warning: Algunos de tus MR estan estancados, estos son!:\n"
-        text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_MR]])
+    if len(notify_dict[username][STALE_WIP]) > 0:
+        text += ":warning: Algunos de tus MR con WIP estan estancados, estos son!:\n"
+        text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_WIP]])
         send = True
     else:
-        text += "No tenes MR estancados :ditto:!\n"
+        text += "No tenes MR en WIP estancados :ditto:!\n"
+    if len(notify_dict[username][STALE_NO_WIP]) > 0:
+        text += ":warning: Algunos de tus MR sin WIP estan estancados, si creés que alguno tiene todo lo necesario " \
+                "para ser revisada, pedí approves en ***REMOVED***-dev. También fijate si se puede aclarar mejor qué se " \
+                "hizo y por qué, para hacerle la tarea más fácil a quien haga review de eto:\n"
+        text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_NO_WIP]])
+        send = True
+    else:
+        text += "No tenes MR sin WIP estancados :ditto:!\n"
     if len(notify_dict[username][ACCEPTED_ISSUES]) > MAX_ACCEPTED:
         text += f":x: Tenes mas de {MAX_ACCEPTED} issues en 'Accepted', fijate:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][ACCEPTED_ISSUES]])
