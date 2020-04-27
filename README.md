@@ -83,8 +83,10 @@ the pushed branch.
 
 ## Automatic creation of upper versions MRs
 
-When a MR of a ***REMOVED*** feature is generating conflicts with ***REMOVED***, the suggested
-way to proceed is to create a branch of ***REMOVED***/dev that fixes the conflict.
+When a MR of a ***REMOVED*** feature also needs changes in ***REMOVED***, the suggested way to
+proceed is to create a branch of ***REMOVED***/dev with both the changes of the ***REMOVED*** MR
+and the speficic changes to ***REMOVED***. Then, open another merge request with target
+branch ***REMOVED***/dev.
 
 Creating another merge request for the ***REMOVED*** feature is tedious, so when the
 user pushes the ***REMOVED*** branch, Gorrabot will detect this is an "upper version
