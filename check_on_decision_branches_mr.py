@@ -153,8 +153,8 @@ for username in notify_dict:
         text += "No tenes MR en WIP estancados :ditto:!\n"
     if len(notify_dict[username][STALE_NO_WIP]) > 0:
         text += ":warning: Algunos de tus MR sin WIP estan estancados, si creés que alguno tiene todo lo necesario " \
-                "para ser revisada, pedí approves en ***REMOVED***-dev. También fijate si se puede aclarar mejor qué se " \
-                "hizo y por qué, para hacerle la tarea más fácil a quien haga review de eto:\n"
+                "para ser revisado, pedí approves en ***REMOVED***-dev. También fijate si se puede aclarar mejor qué se " \
+                "hizo y por qué, para hacerle la tarea más fácil a quien haga review de esto:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_NO_WIP]])
         send = True
     else:
