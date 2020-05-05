@@ -141,3 +141,18 @@ benefits. Sacrificing simplicity is bad.
 The goal of this project is to help us with some things related to our
 development process, not to our code base itself. For this things,
 having a continuous ***REMOVED*** seems to be a better choice.
+
+## List of projects affected:
+### Gorrabot slack messages:
+* [***REMOVED***](***REMOVED***) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***/cloud/***REMOVED***_agent_***REMOVED***) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***-***REMOVED***) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***-***REMOVED***) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***-***REMOVED***) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***/cloud/***REMOVED***) Gitlab ID: ***REMOVED***
+* [web](***REMOVED***) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***/***REMOVED***repo) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***/***REMOVED***) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***-burp) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***) Gitlab ID: ***REMOVED***
+* [***REMOVED***](***REMOVED***) Gitlab ID: ***REMOVED***

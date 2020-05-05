@@ -14,12 +14,15 @@ from app import (
 )
 
 BOT_TOKEN = os.environ['SLACK_BOT_TOKEN']
-REPORT_USERS = ["***REMOVED***"]
+DRY_RUN = os.environ.get("DRY_RUN",None)
+
+REPORT_USERS = ["***REMOVED***", "***REMOVED***"]
 
 project_ids = [int(i) for i in sys.argv[1].split(',')]
 
 slack_session = requests.Session()
 slack_session.params["token"] = BOT_TOKEN
+
 
 """
 The idea of this script is identify who is blocking other dev and notify about this:
@@ -67,7 +70,7 @@ MAX_ACCEPTED = 2
 
 
 def to_slack_user(user: str):
-    return gitlab_to_slack_user[user]
+    return gitlab_to_slack_user[user] if user in gitlab_to_slack_user else None
 
 
 def get_waiting_users(issue):
@@ -138,6 +141,8 @@ for project_id in project_ids:
 
 
 for username in notify_dict:
+    if username is None:
+        continue
     text = "H0L4! Este es tu reporte que te da tu amigo, gorrabot :gorrabot2:!\n"
     send = False
     if len(notify_dict[username][STALE_WIP]) > 0:
@@ -173,5 +178,5 @@ for username in notify_dict:
 
     text += "Nos vemos en el proximo reporte :ninja:"
 
-    if send:
+    if send and DRY_RUN is None:
         send_message(username, text)
