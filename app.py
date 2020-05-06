@@ -13,7 +13,8 @@ SELF_USERNAME = os.environ['GITLAB_BOT_USERNAME']
 API_PREFIX = 'https://gitlab.com/api/v4'
 
 OLD_MEMBERS = [
-    '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***']
+    '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***',
+    '***REMOVED***', '***REMOVED***']
 
 MSG_MISSING_CHANGELOG = (
     'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
