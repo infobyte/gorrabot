@@ -10,23 +10,24 @@ from app import (
     stale_mr_message_interval,
 )
 
-project_id = int(sys.argv[1])
+project_ids = [int(i) for i in sys.argv[1].split(',')]
 
-staled = list(get_staled_merge_requests(project_id,wip='yes'))
-print(f'Found {len(staled)} staled merge requests')
-for mr in staled:
-    username = get_username(mr)
-    if username in OLD_MEMBERS:
-        comment_mr(
-            project_id,
-            mr['iid'],
-            f'{MSG_MR_OLD_MEMBER}',
-            min_time_between_comments=stale_mr_message_interval
-        )
-    else:
-        comment_mr(
-            project_id,
-            mr['iid'],
-            f'@{username}: {MSG_STALE_MR}',
-            min_time_between_comments=stale_mr_message_interval
-        )
+for project_id in project_ids:
+    staled = list(get_staled_merge_requests(project_id,wip='yes'))
+    print(f'Found {len(staled)} staled merge requests in project: {project_id}')
+    for mr in staled:
+        username = get_username(mr)
+        if username in OLD_MEMBERS:
+            comment_mr(
+                project_id,
+                mr['iid'],
+                f'{MSG_MR_OLD_MEMBER}',
+                min_time_between_comments=stale_mr_message_interval
+            )
+        else:
+            comment_mr(
+                project_id,
+                mr['iid'],
+                f'@{username}: {MSG_STALE_MR}',
+                min_time_between_comments=stale_mr_message_interval
+            )
