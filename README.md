@@ -99,6 +99,34 @@ Gorrabot will also notify the user the MR was created. And when the ***REMOVED**
 merged, it will notify the user who merged it so they don't forget about
 merging the upper version MR too.
 
+## Check and report by slack 
+
+Gorrabot checks the status of the projects, and give a summary of: 
+
+ * Staled MR (both WIP and non-WIP) not update in a given amount of time
+ * The accepted issues are less than a boundary
+ * There is no issue waiting for a decision.
+ 
+And gives each developer a summary of undesirable behaviour. Moreover, it gives
+a summary of the team to the REPORT users.
+
+### Staled MR and accepted issues
+
+Based on the default concept of gitlab, this value is obtained by the gitlab 
+API.
+
+### Waiting for decision issues
+
+When the `waiting-decision` label is set in a issue, gorrabot will parse its 
+description and look for a line starting with the prefix `WFD: `. After that 
+prefix, there should be a comma-separated list of gitlab or slack users, whom
+decision is expected to resolve the issue. 
+
+In the case of gitlab users, you should reference them with an @, as the common
+gitlab behaviour. In the case of slack users, based on slack API, you should 
+use the email username. E.g. for `***REMOVED***@***REMOVED***.com` the id is `***REMOVED***` not 
+Eric Horvat, or any other display name.
+
 # Summary of special labels
 
 * `no-changelog`: Use this when the merge request consists of a really
@@ -110,6 +138,8 @@ merging the upper version MR too.
   information
 * `sacate-la-gorra`: A wildcard label that totally disables gorrabot on
   that merge request. **THIS ISN'T RECOMMENDED, SO THINK TWICE WHEN USING THIS**
+* `waiting-decision`: This issue needs a decision be taken before be resolved. 
+  See [this](#waiting-for-decision-issues) for more information.
 
 
 # Design goals
@@ -145,16 +175,55 @@ development process, not to our code base itself. For this things,
 having a continuous ***REMOVED*** seems to be a better choice.
 
 ## List of projects affected:
+### Gitlab IDs
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [web][web] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][gorrabot] Gitlab ID: ***REMOVED***
+
+### Comment staled messages:
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+
 ### Gorrabot slack messages:
-* [***REMOVED***](***REMOVED***) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***/cloud/***REMOVED***_agent_***REMOVED***) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***-***REMOVED***) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***-***REMOVED***) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***-***REMOVED***) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***/cloud/***REMOVED***) Gitlab ID: ***REMOVED***
-* [web](***REMOVED***) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***/***REMOVED***repo) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***/***REMOVED***) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***-burp) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***) Gitlab ID: ***REMOVED***
-* [***REMOVED***](***REMOVED***) Gitlab ID: ***REMOVED***
+* [web][web]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][gorrabot]
+
+[***REMOVED***]: ***REMOVED***
+[***REMOVED***]: ***REMOVED***
+[***REMOVED***]: ***REMOVED***
+[gorrabot]: ***REMOVED***
+[***REMOVED***]: ***REMOVED***-burp
+[***REMOVED***]: ***REMOVED***
+[***REMOVED***]: ***REMOVED***-***REMOVED***
+[***REMOVED***]: ***REMOVED***
+[***REMOVED***]: ***REMOVED***-***REMOVED***
+[***REMOVED***]: ***REMOVED***-***REMOVED***
+[web]: ***REMOVED***
+[***REMOVED***]: ***REMOVED***
+[***REMOVED***]: ***REMOVED***
