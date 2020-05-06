@@ -214,16 +214,16 @@ having a continuous ***REMOVED*** seems to be a better choice.
 * [***REMOVED***][***REMOVED***]
 * [***REMOVED***][gorrabot]
 
-[***REMOVED***]: ***REMOVED***/***REMOVED***/automation
+[***REMOVED***]: ***REMOVED***
 [***REMOVED***]: ***REMOVED***
 [***REMOVED***]: ***REMOVED***
 [gorrabot]: ***REMOVED***
 [***REMOVED***]: ***REMOVED***-burp
-[***REMOVED***]: ***REMOVED***/***REMOVED***
+[***REMOVED***]: ***REMOVED***
 [***REMOVED***]: ***REMOVED***-***REMOVED***
-[***REMOVED***]: ***REMOVED***/cloud/***REMOVED***
+[***REMOVED***]: ***REMOVED***
 [***REMOVED***]: ***REMOVED***-***REMOVED***
 [***REMOVED***]: ***REMOVED***-***REMOVED***
 [web]: ***REMOVED***
-[***REMOVED***]: ***REMOVED***/***REMOVED***repo
-[***REMOVED***]: ***REMOVED***/cloud/***REMOVED***_agent_***REMOVED***
+[***REMOVED***]: ***REMOVED***
+[***REMOVED***]: ***REMOVED***
