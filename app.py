@@ -365,7 +365,7 @@ def sync_related_issue(mr):
     the multiple-merge-requests label, do nothing.
 
     WIP MR -> Label issue as accepted
-    Pending merge/approbal MR -> Label issue as test
+    Pending merge/approval MR -> Label issue as test
     Merged MR -> Close issue and delete status labels (accepted, test)
     # Closed MR -> Close issue, delete status label and label as invalid
     # Closed MR -> Do nothing, assume that another MR will be created
