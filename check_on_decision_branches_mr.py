@@ -1,20 +1,21 @@
 import os
-import re
 import requests
 import sys
 import json
 from collections import defaultdict
 
-from app import (
-    OLD_MEMBERS,
-    get_staled_merge_requests,
-    get_decision_issues,
-    get_usernames_from_mr_or_issue,
-    get_accepted_issues
-)
+from api.constants import gitlab_to_slack_user, MAX_ISSUES_ACCEPTED
+from api.gitlab.issue import get_accepted_issues, get_decision_issues
+from api.gitlab.mr import get_staled_merge_requests
+from api.gitlab.username import get_usernames_from_mr_or_issue
+from api.gitlab.utils import get_waiting_users_from_issue
+from api.slack.message import send_message
+from api.slack.user import get_slack_user_data
+from app import request_session
+from constants import OLD_MEMBERS
 
 BOT_TOKEN = os.environ['SLACK_BOT_TOKEN']
-DRY_RUN = os.environ.get("DRY_RUN",None)
+DRY_RUN = os.environ.get("DRY_RUN", None)
 
 REPORT_USERS = ["***REMOVED***", "***REMOVED***"]
 
@@ -34,31 +35,6 @@ WFD: [comma-separated-slack_user/gitlab-user]
 
 """
 
-gitlab_to_slack_user = {
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***"
-}
-
 STALE_WIP = "stale_wip"
 STALE_NO_WIP = "stale_no_wip"
 WAITING_DECISION = "waiting-decision"
@@ -66,57 +42,27 @@ ACCEPTED_ISSUES = "accepted-issues"
 
 notify_dict = defaultdict(lambda: {STALE_WIP: [], STALE_NO_WIP: [], WAITING_DECISION: [], ACCEPTED_ISSUES: []})
 
-MAX_ACCEPTED = 2
-
-
-def to_slack_user(user: str):
-    return gitlab_to_slack_user[user] if user in gitlab_to_slack_user else None
-
 
 def get_waiting_users(issue):
-    description = issue["description"]
-    desc_lines = [line.strip() for line in description.splitlines()]
-    match = list(filter(lambda line: re.match(r"WFD: .+", line), desc_lines))
-    users = []
-    if len(match) > 0:
-        users = [user.strip() for user in match[0][4:].split(",")]
-        users = [to_slack_user(user[1:]) if user[0] == "@" else user for user in users if len(user) > 0]
-
+    users = [gitlab_to_slack_user(user[1:])
+             if user[0] == "@" else user for user in get_waiting_users_from_issue(issue) if len(user) > 0
+            ]
     return users
 
 
-res = slack_session.get("https://slack.com/api/users.list")
-
-res.raise_for_status()
-data = res.json()
-assert data["ok"]
-slack_users_data = {elem["name"]: elem for elem in data["members"] if not elem['deleted'] and not elem["is_bot"]}
+slack_user_data = get_slack_user_data(slack_session)
 
 
-def send_message(slack_user: str, text: str):
-    if slack_user not in slack_users_data:
-        print(f"Ask for send message to user: {slack_user}, who is not in the slack api response")
-        return None
-    else:
-        params = {
-            "channel" : slack_users_data[slack_user]['id'],
-            "text": text,
-            "as_user": True
-        }
-        res = slack_session.post("https://slack.com/api/chat.postMessage", params=params)
-        return res
+def get_slack_user_from_mr_or_issue(elem: dict):
+    return [gitlab_to_slack_user(user) for user in get_usernames_from_mr_or_issue(request_session, elem)]
 
 
-def get_slack_user_from_mr_or_issue(elem):
-    return [to_slack_user(user) for user in get_usernames_from_mr_or_issue(elem)]
+def get_staled_wip_merge_requests(session: requests.Session, project_id: int):
+    return get_staled_merge_requests(session, project_id, 'yes')
 
 
-def get_staled_wip_merge_requests(project_id):
-    return get_staled_merge_requests(project_id,'yes')
-
-
-def get_staled_no_wip_merge_requests(project_id):
-    return get_staled_merge_requests(project_id,'no')
+def get_staled_no_wip_merge_requests(session: requests.Session, project_id: int):
+    return get_staled_merge_requests(session, project_id, 'no')
 
 
 for project_id in project_ids:
@@ -129,7 +75,7 @@ for project_id in project_ids:
     ]
 
     for function_dict in checking_functions:
-        for elem in function_dict["elem_picker"](project_id):
+        for elem in function_dict["elem_picker"](request_session, project_id):
             usernames = function_dict["user_picker"](elem)
 
             for username in usernames:
@@ -159,8 +105,8 @@ for username in notify_dict:
         send = True
     else:
         text += "No tenes MR sin WIP estancados :ditto:!\n"
-    if len(notify_dict[username][ACCEPTED_ISSUES]) > MAX_ACCEPTED:
-        text += f":x: Tenes mas de {MAX_ACCEPTED} issues en 'Accepted', fijate:\n"
+    if len(notify_dict[username][ACCEPTED_ISSUES]) > MAX_ISSUES_ACCEPTED:
+        text += f":x: Tenes mas de {MAX_ISSUES_ACCEPTED} issues en 'Accepted', fijate:\n"
         text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][ACCEPTED_ISSUES]])
         send = True
     if len(notify_dict[username][WAITING_DECISION]) > 0:
@@ -179,4 +125,4 @@ for username in notify_dict:
     text += "Nos vemos en el proximo reporte :ninja:"
 
     if send and DRY_RUN is None:
-        send_message(username, text)
+        send_message(username, text, slack_user_data)
