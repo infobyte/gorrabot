@@ -9,14 +9,13 @@ from api.gitlab.mr import (
 )
 from api.gitlab.username import get_username
 from constants import (
-    branch_regex,
     NO_MD_CHANGELOG,
     MSG_BAD_BRANCH_NAME,
     MSG_MISSING_CHANGELOG,
     MSG_TKT_MR,
     REQUEST_TOKEN,
     SELF_USERNAME,
-    TOKEN, GitlabLabels
+    TOKEN, GitlabLabels, regex_dict
 )
 from multi_main_repo_logic import handle_multi_main_push, notify_unmerged_superior_mrs, \
     add_multiple_merge_requests_label_if_needed
@@ -67,6 +66,7 @@ def homepage():
     sync_related_issue(request_session, mr)
     fill_fields_based_on_issue(request_session, mr)
 
+    branch_regex = regex_dict[mr['repository']['name']]
     if not re.match(branch_regex, mr['source_branch']):
         comment_mr(request_session, project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
 

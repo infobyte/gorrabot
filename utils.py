@@ -4,6 +4,8 @@ from requests import Session
 
 from api.gitlab.branch import get_branch
 from api.gitlab.issue import get_issue
+from api.gitlab.mr import update_mr
+from constants import regex_dict
 
 
 def has_label(obj, label_name):
@@ -13,6 +15,7 @@ def has_label(obj, label_name):
 
 def get_related_issue_iid(mr: dict):
     branch = mr['source_branch']
+    branch_regex = regex_dict[mr['repository']['name']]
     try:
         iid = re.findall(branch_regex, branch)[0]
     except IndexError:
