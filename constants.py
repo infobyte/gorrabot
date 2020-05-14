@@ -84,6 +84,12 @@ decision_issue_message_interval = datetime.timedelta(days=0)
 
 branch_regex = r'***REMOVED***'
 
+
 class GitlabLabels:
     NO_ME_APURES = 'no-me-apures'
     NO_CHANGELOG = 'no-changelog'
+    SACATE_LA_GORRA = 'sacate-la-gorra'
+    MULTIPLE_MR = 'multiple-merge-requests'
+    TEST = 'Test'
+    ACCEPTED = 'Accepted'
+

@@ -49,3 +49,11 @@ def get_accepted_issues(session: Session, project_id: int):
         'per_page': 100,
     }
     return get_issues(session, project_id, filters)
+
+
+def update_issue(session: Session, project_id: int, iid: int, data: dict):
+    url = '{}/projects/{}/issues/{}'.format(
+            GITLAB_API_PREFIX, project_id, iid)
+    res = session.put(url, json=data)
+    res.raise_for_status()
+    return res.json()
