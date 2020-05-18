@@ -1,8 +1,9 @@
 import sys
 
-from api.gitlab.mr import get_staled_merge_requests, comment_mr
+from api.gitlab.mr import comment_mr
 from api.gitlab.username import get_username
 from constants import OLD_MEMBERS, MSG_MR_OLD_MEMBER, stale_mr_message_interval, MSG_STALE_MR
+from utils import get_staled_merge_requests
 
 """"(
     comment_mr,

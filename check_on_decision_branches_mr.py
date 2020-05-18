@@ -1,17 +1,15 @@
 import os
-import requests
 import sys
 import json
 from collections import defaultdict
 
 from api.constants import gitlab_to_slack_user, MAX_ISSUES_ACCEPTED
-from api.gitlab.issue import get_accepted_issues, get_decision_issues
-from api.gitlab.mr import get_staled_merge_requests
+from api.gitlab.issue import get_accepted_issues
 from api.gitlab.username import get_usernames_from_mr_or_issue
-from api.gitlab.utils import get_waiting_users_from_issue
 from api.slack.message import send_message
 from api.slack.user import get_slack_user_data
 from constants import OLD_MEMBERS
+from utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests
 
 DRY_RUN = os.environ.get("DRY_RUN", None)
 

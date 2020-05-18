@@ -1,10 +1,12 @@
+import datetime
 from typing import List
 import re
 
+from api.gitlab import GitlabLabels
 from api.gitlab.branch import get_branch
-from api.gitlab.issue import get_issue
-from api.gitlab.mr import update_mr
-from constants import regex_dict
+from api.gitlab.issue import get_issue, get_issues
+from api.gitlab.mr import update_mr, get_merge_requests, get_mr_last_commit
+from constants import regex_dict, decision_issue_message_interval, inactivity_time
 
 
 def has_label(obj, label_name):
@@ -79,3 +81,58 @@ def fill_fields_based_on_issue(mr: dict):
 
     if data:
         return update_mr(project_id, mr['iid'], data)
+
+
+def get_decision_issues(project_id: int):
+    filters = {
+        'scope': 'all',
+        'state': 'opened',
+        'labels': 'waiting-decision',
+        'per_page': 100,
+    }
+    issues = get_issues(project_id, filters)
+    for issue in issues:
+        if GitlabLabels.NO_ME_APURES in issue['labels']:
+            continue
+        updated_at = parse_api_date(issue['updated_at'])
+        if datetime.datetime.utcnow() - updated_at > decision_issue_message_interval:
+            yield issue
+
+
+def parse_api_date(date):
+    assert date.endswith('Z')
+    return datetime.datetime.fromisoformat(date[:-1])
+
+
+def get_waiting_users_from_issue(issue):
+    description = issue["description"]
+    desc_lines = [line.strip() for line in description.splitlines()]
+    match = list(filter(lambda line: re.match(r"WFD: .+", line), desc_lines))
+    users = []
+    if len(match) > 0:
+        users = [user.strip() for user in match[0][4:].split(",")]
+
+    return users
+
+
+def get_staled_merge_requests(project_id: int, wip=None):
+    filters = {
+        'scope': 'all',
+        'wip': wip,
+        'state': 'opened',
+        'per_page': 100,
+    }
+    mrs = get_merge_requests(project_id, filters)
+    for mr in mrs:
+        if GitlabLabels.NO_ME_APURES in mr['labels']:
+            continue
+        if mr['source_branch'] and mr['source_branch'].startswith('exp_'):
+            continue
+        last_commit = get_mr_last_commit(mr)
+        if last_commit is None:
+            # There is no activity in the MR, use the MR's creation date
+            created_at = parse_api_date(mr['created_at'])
+        else:
+            created_at = parse_api_date(last_commit['created_at'])
+        if datetime.datetime.utcnow() - created_at > inactivity_time:
+            yield mr

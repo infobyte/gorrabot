@@ -1,8 +1,7 @@
 import datetime
 
-from api.gitlab import gitlab_session, GITLAB_API_PREFIX, GitlabLabels
-from api.gitlab.utils import parse_api_date
-from constants import inactivity_time
+from api.gitlab import gitlab_session, GITLAB_API_PREFIX
+from utils import parse_api_date
 
 
 def get_merge_requests(project_id: int, filters=None):
@@ -71,29 +70,6 @@ def update_mr(project_id: int, iid: int, data: dict):
     res = gitlab_session.put(url, json=data)
     res.raise_for_status()
     return res.json()
-
-
-def get_staled_merge_requests(project_id: int, wip=None):
-    filters = {
-        'scope': 'all',
-        'wip': wip,
-        'state': 'opened',
-        'per_page': 100,
-    }
-    mrs = get_merge_requests(project_id, filters)
-    for mr in mrs:
-        if GitlabLabels.NO_ME_APURES in mr['labels']:
-            continue
-        if mr['source_branch'] and mr['source_branch'].startswith('exp_'):
-            continue
-        last_commit = get_mr_last_commit(mr)
-        if last_commit is None:
-            # There is no activity in the MR, use the MR's creation date
-            created_at = parse_api_date(mr['created_at'])
-        else:
-            created_at = parse_api_date(last_commit['created_at'])
-        if datetime.datetime.utcnow() - created_at > inactivity_time:
-            yield mr
 
 
 def get_related_merge_requests(project_id: int, issue_iid: int):

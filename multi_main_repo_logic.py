@@ -123,7 +123,7 @@ Created with <3 by @gorrabot, based on merge request
     )
 
     new_labels = set(parent_mr['labels'])
-    new_labels.add('no-changelog')
+    new_labels.add(GitlabLabels.NO_CHANGELOG)
     new_labels = list(new_labels)
 
     mr = {
