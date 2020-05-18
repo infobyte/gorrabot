@@ -1,12 +1,5 @@
 import datetime
-import os
 from collections import defaultdict
-
-TOKEN = os.environ['GITLAB_TOKEN']
-REQUEST_TOKEN = os.environ['GITLAB_CHECK_TOKEN']
-SELF_USERNAME = os.environ['GITLAB_BOT_USERNAME']
-
-GITLAB_API_PREFIX = 'https://gitlab.com/api/v4'
 
 OLD_MEMBERS = [
     '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***',
@@ -82,15 +75,6 @@ stale_mr_message_interval = datetime.timedelta(days=7)
 
 # Time to wait until a new message indicating the MR is stale is created
 decision_issue_message_interval = datetime.timedelta(days=0)
-
-
-class GitlabLabels:
-    NO_ME_APURES = 'no-me-apures'
-    NO_CHANGELOG = 'no-changelog'
-    SACATE_LA_GORRA = 'sacate-la-gorra'
-    MULTIPLE_MR = 'multiple-merge-requests'
-    TEST = 'Test'
-    ACCEPTED = 'Accepted'
 
 
 __other_regex = {

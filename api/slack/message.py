@@ -1,3 +1,5 @@
+from api.slack import slack_session, SLACK_API_PREFIX
+
 
 def send_message(slack_user: str, text: str, slack_users_data: dict):
     slack_users_data = {
@@ -9,9 +11,9 @@ def send_message(slack_user: str, text: str, slack_users_data: dict):
         return None
     else:
         params = {
-            "channel" : slack_users_data[slack_user]['id'],
+            "channel": slack_users_data[slack_user]['id'],
             "text": text,
             "as_user": True
         }
-        res = slack_session.post("https://slack.com/api/chat.postMessage", params=params)
+        res = slack_session.post(f"{SLACK_API_PREFIX}/chat.postMessage", params=params)
         return res

@@ -1,8 +1,11 @@
 import re
-import requests
 from flask import Flask, request, abort
-from requests import Session
 
+from api.gitlab import (
+    GITLAB_REQUEST_TOKEN,
+    GITLAB_SELF_USERNAME,
+    GitlabLabels
+)
 from api.gitlab.issue import get_issue, update_issue
 from api.gitlab.mr import (
     set_wip, get_mr_changes, update_mr, comment_mr
@@ -13,18 +16,13 @@ from constants import (
     MSG_BAD_BRANCH_NAME,
     MSG_MISSING_CHANGELOG,
     MSG_TKT_MR,
-    REQUEST_TOKEN,
-    SELF_USERNAME,
-    TOKEN, GitlabLabels, regex_dict
+    regex_dict
 )
 from multi_main_repo_logic import handle_multi_main_push, notify_unmerged_superior_mrs, \
     add_multiple_merge_requests_label_if_needed
 from utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
 
 app = Flask(__name__)
-
-request_session = requests.Session()
-request_session.headers['Private-Token'] = TOKEN
 
 
 @app.route('/status')
@@ -34,16 +32,16 @@ def status():
 
 @app.route('/webhook', methods=['POST'])
 def homepage():
-    if request.headers.get('X-Gitlab-Token') != REQUEST_TOKEN:
+    if request.headers.get('X-Gitlab-Token') != GITLAB_REQUEST_TOKEN:
         abort(403)
     json = request.get_json()
     if json is None:
         abort(400)
 
     if json.get('object_kind') == 'push':
-        return handle_push(request_session, json)
+        return handle_push(json)
 
-    if json['user']['username'] == SELF_USERNAME:
+    if json['user']['username'] == GITLAB_SELF_USERNAME:
         # To prevent infinite loops and race conditions, ignore events related
         # to actions that this bot did
         return 'Ignoring webhook from myself'
@@ -55,25 +53,25 @@ def homepage():
         return 'Ignoring all!'
 
     mr = json['object_attributes']
-    username = get_username(request_session, json)
+    username = get_username(json)
     (project_id, iid) = (mr['source_project_id'], mr['iid'])
 
     is_multi_main = is_multi_main_mr(mr)
 
-    check_issue_reference_in_description(request_session, mr)
+    check_issue_reference_in_description(mr)
     if is_multi_main:
-        add_multiple_merge_requests_label_if_needed(request_session, mr)
-    sync_related_issue(request_session, mr)
-    fill_fields_based_on_issue(request_session, mr)
+        add_multiple_merge_requests_label_if_needed(mr)
+    sync_related_issue(mr)
+    fill_fields_based_on_issue(mr)
 
     branch_regex = regex_dict[mr['repository']['name']]
     if not re.match(branch_regex, mr['source_branch']):
-        comment_mr(request_session, project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
+        comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
 
     if mr['work_in_progress']:
         return 'Ignoring WIP MR'
     if mr['state'] == 'merged' and is_multi_main:
-        notify_unmerged_superior_mrs(request_session, mr)
+        notify_unmerged_superior_mrs(mr)
     if mr['state'] in ('merged', 'closed'):
         return 'Ignoring closed MR'
 
@@ -82,21 +80,21 @@ def homepage():
 
     print(f"Processing MR #{mr['iid']} of project {mr['repository']['name']}")
 
-    if not has_changed_changelog(request_session, project_id, iid, only_md=True):
-        if has_changed_changelog(request_session, project_id, iid, only_md=False):
+    if not has_changed_changelog(project_id, iid, only_md=True):
+        if has_changed_changelog(project_id, iid, only_md=False):
             msg = NO_MD_CHANGELOG
         else:
             msg = MSG_MISSING_CHANGELOG
-        comment_mr(request_session, project_id, iid, f"@{username}: {msg}")
-        set_wip(request_session, project_id, iid)
+        comment_mr(project_id, iid, f"@{username}: {msg}")
+        set_wip(project_id, iid)
 
     if mr['title'].lower().startswith('tkt '):
-        comment_mr(request_session, project_id, iid, f"@{username}: {MSG_TKT_MR}", can_be_duplicated=False)
+        comment_mr(project_id, iid, f"@{username}: {MSG_TKT_MR}", can_be_duplicated=False)
 
     return 'OK'
 
 
-def handle_push(session: Session, push: dict):
+def handle_push(push: dict):
     prefix = 'refs/heads/'
     if not push['ref'].startswith(prefix):  # TODO CHANGE FOR REACT AND OTHERS
         msg = f'Unknown ref name {push["ref"]}'
@@ -104,14 +102,14 @@ def handle_push(session: Session, push: dict):
         return msg
 
     if push["repository"]["name"] == "***REMOVED***":
-        return handle_multi_main_push(session, push, prefix)
+        return handle_multi_main_push(push, prefix)
 
     return 'OK'
 
 
 # @ehorvat: I believe this should be in a utils as it depends on gitlab
-def has_changed_changelog(session: Session, project_id: int, iid: int, only_md: bool):
-    changes = get_mr_changes(session, project_id, iid)
+def has_changed_changelog(project_id: int, iid: int, only_md: bool):
+    changes = get_mr_changes(project_id, iid)
     changed_files = get_changed_files(changes)
     for filename in changed_files:
         if filename.startswith('CHANGELOG'):
@@ -124,7 +122,7 @@ def get_changed_files(changes):
     return set(change['new_path'] for change in changes)
 
 
-def sync_related_issue(session: Session, mr: dict):
+def sync_related_issue(mr: dict):
     """Change the status of the issue related to the new/updated MR
 
     Get the issue by matching the source branch name. If the issue has
@@ -142,7 +140,7 @@ def sync_related_issue(session: Session, mr: dict):
     project_id = mr['source_project_id']
     if issue_iid is None:
         return
-    issue = get_issue(session, project_id, issue_iid)
+    issue = get_issue(project_id, issue_iid)
     if issue is None or has_label(mr, GitlabLabels.MULTIPLE_MR):
         return
 
@@ -171,10 +169,10 @@ def sync_related_issue(session: Session, mr: dict):
     if close:
         data['state_event'] = 'close'
 
-    return update_issue(session, project_id, issue_iid, data)
+    return update_issue(project_id, issue_iid, data)
 
 
-def check_issue_reference_in_description(session: Session, mr: dict):
+def check_issue_reference_in_description(mr: dict):
     issue_iid = get_related_issue_iid(mr)
     if issue_iid is None:
         return
@@ -183,7 +181,7 @@ def check_issue_reference_in_description(session: Session, mr: dict):
         return
     project_id = mr['source_project_id']
     new_desc = f'Closes #{issue_iid} \r\n\r\n{mr["description"]}'
-    return update_mr(session, project_id, mr['iid'], {'description': new_desc})
+    return update_mr(project_id, mr['iid'], {'description': new_desc})
 
 
 def is_multi_main_mr(mr):

@@ -2,7 +2,6 @@ import sys
 
 from api.gitlab.mr import get_staled_merge_requests, comment_mr
 from api.gitlab.username import get_username
-from app import request_session
 from constants import OLD_MEMBERS, MSG_MR_OLD_MEMBER, stale_mr_message_interval, MSG_STALE_MR
 
 """"(
@@ -18,13 +17,12 @@ from constants import OLD_MEMBERS, MSG_MR_OLD_MEMBER, stale_mr_message_interval,
 project_ids = [int(i) for i in sys.argv[1].split(',')]
 
 for project_id in project_ids:
-    staled = list(get_staled_merge_requests(request_session, project_id, wip='yes'))
+    staled = list(get_staled_merge_requests(project_id, wip='yes'))
     print(f'Found {len(staled)} staled merge requests in project: {project_id}')
     for mr in staled:
-        username = get_username(request_session, mr)
+        username = get_username(mr)
         if username in OLD_MEMBERS:
             comment_mr(
-                request_session,
                 project_id,
                 mr['iid'],
                 f'{MSG_MR_OLD_MEMBER}',
@@ -32,7 +30,6 @@ for project_id in project_ids:
             )
         else:
             comment_mr(
-                request_session,
                 project_id,
                 mr['iid'],
                 f'@{username}: {MSG_STALE_MR}',

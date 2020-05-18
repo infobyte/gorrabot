@@ -11,18 +11,13 @@ from api.gitlab.username import get_usernames_from_mr_or_issue
 from api.gitlab.utils import get_waiting_users_from_issue
 from api.slack.message import send_message
 from api.slack.user import get_slack_user_data
-from app import request_session
 from constants import OLD_MEMBERS
 
-BOT_TOKEN = os.environ['SLACK_BOT_TOKEN']
 DRY_RUN = os.environ.get("DRY_RUN", None)
 
 REPORT_USERS = ["***REMOVED***", "***REMOVED***"]
 
 project_ids = [int(i) for i in sys.argv[1].split(',')]
-
-slack_session = requests.Session()
-slack_session.params["token"] = BOT_TOKEN
 
 
 """
@@ -50,19 +45,19 @@ def get_waiting_users(issue):
     return users
 
 
-slack_user_data = get_slack_user_data(slack_session)
+slack_user_data = get_slack_user_data()
 
 
 def get_slack_user_from_mr_or_issue(elem: dict):
-    return [gitlab_to_slack_user(user) for user in get_usernames_from_mr_or_issue(request_session, elem)]
+    return [gitlab_to_slack_user(user) for user in get_usernames_from_mr_or_issue(elem)]
 
 
-def get_staled_wip_merge_requests(session: requests.Session, project_id: int):
-    return get_staled_merge_requests(session, project_id, 'yes')
+def get_staled_wip_merge_requests(project_id: int):
+    return get_staled_merge_requests(project_id, 'yes')
 
 
-def get_staled_no_wip_merge_requests(session: requests.Session, project_id: int):
-    return get_staled_merge_requests(session, project_id, 'no')
+def get_staled_no_wip_merge_requests(project_id: int):
+    return get_staled_merge_requests(project_id, 'no')
 
 
 for project_id in project_ids:
@@ -75,7 +70,7 @@ for project_id in project_ids:
     ]
 
     for function_dict in checking_functions:
-        for elem in function_dict["elem_picker"](request_session, project_id):
+        for elem in function_dict["elem_picker"](project_id):
             usernames = function_dict["user_picker"](elem)
 
             for username in usernames:

@@ -1,15 +1,15 @@
 import datetime
-from requests import Session
 
+from api.gitlab import gitlab_session, GITLAB_API_PREFIX, GitlabLabels
 from api.gitlab.utils import parse_api_date
-from constants import GITLAB_API_PREFIX, GitlabLabels, inactivity_time
+from constants import inactivity_time
 
 
-def get_merge_requests(session: Session, project_id: int, filters=None):
+def get_merge_requests(project_id: int, filters=None):
     if filters is None:
         filters = {}
     url = f'{GITLAB_API_PREFIX}/projects/{project_id}/merge_requests'
-    res = session.get(url, params=filters)
+    res = gitlab_session.get(url, params=filters)
     res.raise_for_status()
     # TODO PAGINATION
     return res.json()
@@ -20,24 +20,24 @@ def mr_url(project_id, iid):
             GITLAB_API_PREFIX, project_id, iid)
 
 
-def get_mr_changes(session: Session, project_id: int, iid: int):
+def get_mr_changes(project_id: int, iid: int):
     url = mr_url(project_id, iid) + '/changes'
-    res = session.get(url)
+    res = gitlab_session.get(url)
     res.raise_for_status()
     return res.json()['changes']
 
 
-def get_mr(session: Session, project_id: int, iid: int):
+def get_mr(project_id: int, iid: int):
     url = f'{GITLAB_API_PREFIX}/projects/{project_id}/merge_requests/{iid}'
-    res = session.get(url)
+    res = gitlab_session.get(url)
     res.raise_for_status()
     return res.json()
 
 
-def get_mr_last_commit(session: Session, mr: dict):
+def get_mr_last_commit(mr: dict):
     project_id = mr['source_project_id']
     url = mr_url(project_id, mr['iid']) + '/commits'
-    res = session.get(url)
+    res = gitlab_session.get(url)
     res.raise_for_status()
     try:
         return res.json()[0]
@@ -45,48 +45,48 @@ def get_mr_last_commit(session: Session, mr: dict):
         return
 
 
-def create_mr(session: Session, project_id: int, mr_data: dict):
+def create_mr(project_id: int, mr_data: dict):
     url = (
         f"{GITLAB_API_PREFIX}/projects/{project_id}/"
         f"merge_requests"
     )
-    res = session.post(url, json=mr_data)
+    res = gitlab_session.post(url, json=mr_data)
     res.raise_for_status()
     return res.json()
 
 
-def set_wip(session: Session, project_id: int, iid: int):
+def set_wip(project_id: int, iid: int):
     url = mr_url(project_id, iid)
-    res = session.get(url)
+    res = gitlab_session.get(url)
     res.raise_for_status()
     mr = res.json()
 
     assert not mr['work_in_progress'] and not mr['title'].startswith('WIP:')
     data = {"title": "WIP: " + mr['title']}
-    return update_mr(session, project_id, iid, data)
+    return update_mr(project_id, iid, data)
 
 
-def update_mr(session: Session, project_id: int, iid: int, data: dict):
+def update_mr(project_id: int, iid: int, data: dict):
     url = mr_url(project_id, iid)
-    res = session.put(url, json=data)
+    res = gitlab_session.put(url, json=data)
     res.raise_for_status()
     return res.json()
 
 
-def get_staled_merge_requests(session: Session, project_id: int, wip=None):
+def get_staled_merge_requests(project_id: int, wip=None):
     filters = {
         'scope': 'all',
         'wip': wip,
         'state': 'opened',
         'per_page': 100,
     }
-    mrs = get_merge_requests(session, project_id, filters)
+    mrs = get_merge_requests(project_id, filters)
     for mr in mrs:
         if GitlabLabels.NO_ME_APURES in mr['labels']:
             continue
         if mr['source_branch'] and mr['source_branch'].startswith('exp_'):
             continue
-        last_commit = get_mr_last_commit(session, mr)
+        last_commit = get_mr_last_commit(mr)
         if last_commit is None:
             # There is no activity in the MR, use the MR's creation date
             created_at = parse_api_date(mr['created_at'])
@@ -96,20 +96,19 @@ def get_staled_merge_requests(session: Session, project_id: int, wip=None):
             yield mr
 
 
-def get_related_merge_requests(session: Session, project_id: int, issue_iid: int):
+def get_related_merge_requests(project_id: int, issue_iid: int):
     url = '{}/projects/{}/issues/{}/related_merge_requests'.format(
             GITLAB_API_PREFIX, project_id, issue_iid)
-    res = session.get(url)
+    res = gitlab_session.get(url)
     res.raise_for_status()
     return res.json()
 
 
-def comment_mr(session: Session, project_id: int, iid: int, body: str, can_be_duplicated=True,
-               min_time_between_comments=None):
+def comment_mr(project_id: int, iid: int, body: str, can_be_duplicated=True, min_time_between_comments=None):
     if not can_be_duplicated:
         # Ugly hack to drop user mentions from body
         search_title = body.split(': ', 1)[-1]
-        res = session.get(mr_url(project_id, iid) + '/notes')
+        res = gitlab_session.get(mr_url(project_id, iid) + '/notes')
         res.raise_for_status()
         comments = res.json()
         if any(search_title in comment['body']
@@ -121,7 +120,7 @@ def comment_mr(session: Session, project_id: int, iid: int, body: str, can_be_du
         # min_time_between_comments to duplicate them
         # Ugly hack to drop user mentions from body
         search_title = body.split(': ', 1)[-1]
-        res = session.get(mr_url(project_id, iid) + '/notes')
+        res = gitlab_session.get(mr_url(project_id, iid) + '/notes')
         res.raise_for_status()
         comments = res.json()
 
@@ -136,6 +135,6 @@ def comment_mr(session: Session, project_id: int, iid: int, body: str, can_be_du
 
     url = mr_url(project_id, iid) + '/notes'
     data = {"body": body}
-    res = session.post(url, json=data)
+    res = gitlab_session.post(url, json=data)
     res.raise_for_status()
     return res.json()

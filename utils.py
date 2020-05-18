@@ -1,6 +1,5 @@
 from typing import List
 import re
-from requests import Session
 
 from api.gitlab.branch import get_branch
 from api.gitlab.issue import get_issue
@@ -34,14 +33,14 @@ def filter_current_or_upcoming_mrs(merge_requests: List[dict]):
             yield mr
 
 
-def get_branch_last_commit(session: Session, project_id: int, branch_name: str):
-    branch = get_branch(session, project_id, branch_name)
+def get_branch_last_commit(project_id: int, branch_name: str):
+    branch = get_branch(project_id, branch_name)
     if branch is None:
         return
     return branch['commit']
 
 
-def fill_fields_based_on_issue(session: Session, mr: dict):
+def fill_fields_based_on_issue(mr: dict):
     """Complete the MR fields with data in its associated issue.
 
     If the MR doesn't have an assigned user, set to the issue's
@@ -55,7 +54,7 @@ def fill_fields_based_on_issue(session: Session, mr: dict):
     project_id = mr['source_project_id']
     if issue_iid is None:
         return
-    issue = get_issue(session, project_id, issue_iid)
+    issue = get_issue(project_id, issue_iid)
     if issue is None:
         return
 
@@ -79,4 +78,4 @@ def fill_fields_based_on_issue(session: Session, mr: dict):
         data['assignee_id'] = issue['assignees'][0]['id']  # TODO CHANGE
 
     if data:
-        return update_mr(session, project_id, mr['iid'], data)
+        return update_mr(project_id, mr['iid'], data)
