@@ -2,11 +2,12 @@ import datetime
 from typing import List
 import re
 
-from api.gitlab import GitlabLabels
-from api.gitlab.branch import get_branch
-from api.gitlab.issue import get_issue, get_issues
-from api.gitlab.mr import update_mr, get_merge_requests, get_mr_last_commit
-from constants import regex_dict, decision_issue_message_interval, inactivity_time
+from gorrabot.api.gitlab import GitlabLabels
+from gorrabot.api.gitlab.branches import get_branch
+from gorrabot.api.gitlab.issues import get_issue, get_issues
+from gorrabot.api.gitlab.merge_requests import update_mr, get_merge_requests, get_mr_last_commit
+from gorrabot.api.utils import parse_api_date
+from gorrabot.constants import regex_dict, decision_issue_message_interval, inactivity_time
 
 
 def has_label(obj, label_name):
@@ -97,11 +98,6 @@ def get_decision_issues(project_id: int):
         updated_at = parse_api_date(issue['updated_at'])
         if datetime.datetime.utcnow() - updated_at > decision_issue_message_interval:
             yield issue
-
-
-def parse_api_date(date):
-    assert date.endswith('Z')
-    return datetime.datetime.fromisoformat(date[:-1])
 
 
 def get_waiting_users_from_issue(issue):

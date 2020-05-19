@@ -1,26 +1,32 @@
 import re
 from flask import Flask, request, abort
 
-from api.gitlab import (
+from gorrabot.api.gitlab import (
     GITLAB_REQUEST_TOKEN,
     GITLAB_SELF_USERNAME,
     GitlabLabels
 )
-from api.gitlab.issue import get_issue, update_issue
-from api.gitlab.mr import (
-    set_wip, get_mr_changes, update_mr, comment_mr
+from gorrabot.api.gitlab.issues import get_issue, update_issue
+from gorrabot.api.gitlab.merge_requests import (
+    set_wip,
+    get_mr_changes,
+    update_mr,
+    comment_mr
 )
-from api.gitlab.username import get_username
-from constants import (
+from gorrabot.api.gitlab.usernames import get_username
+from gorrabot.constants import (
     NO_MD_CHANGELOG,
     MSG_BAD_BRANCH_NAME,
     MSG_MISSING_CHANGELOG,
     MSG_TKT_MR,
     regex_dict
 )
-from multi_main_repo_logic import handle_multi_main_push, notify_unmerged_superior_mrs, \
+from gorrabot.multi_main_repo_logic import (
+    handle_multi_main_push,
+    notify_unmerged_superior_mrs,
     add_multiple_merge_requests_label_if_needed
-from utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
+)
+from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
 
 app = Flask(__name__)
 
@@ -188,5 +194,9 @@ def is_multi_main_mr(mr):
     return mr["repository"]["name"] == "***REMOVED***"  # TODO CHANGE FOR REACT AND OTHERS
 
 
-if __name__ == '__main__':
+def main():
     app.run(debug=True, use_reloader=True)
+
+
+if __name__ == '__main__':
+    main()

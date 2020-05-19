@@ -1,16 +1,16 @@
-from api.gitlab import GitlabLabels
-from api.gitlab.issue import get_issue, update_issue
-from api.gitlab.job import get_commit_jobs, retry_job
-from api.gitlab.mr import (
+from gorrabot.api.gitlab import GitlabLabels
+from gorrabot.api.gitlab.issues import get_issue, update_issue
+from gorrabot.api.gitlab.jobs import get_commit_jobs, retry_job
+from gorrabot.api.gitlab.merge_requests import (
     get_merge_requests,
     comment_mr,
     create_mr,
     get_related_merge_requests,
     get_mr
 )
-from api.gitlab.username import get_username
-from constants import MSG_NEW_MR_CREATED, MSG_CHECK_SUPERIOR_MR
-from utils import get_related_issue_iid, get_branch_last_commit, fill_fields_based_on_issue, has_label
+from gorrabot.api.gitlab.usernames import get_username
+from gorrabot.constants import MSG_NEW_MR_CREATED, MSG_CHECK_SUPERIOR_MR
+from gorrabot.utils import get_related_issue_iid, get_branch_last_commit, fill_fields_based_on_issue, has_label
 
 
 def handle_multi_main_push(push: dict, prefix: str):

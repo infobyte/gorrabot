@@ -1,6 +1,6 @@
 from urllib.parse import quote
 
-from api.gitlab import gitlab_session, GITLAB_API_PREFIX
+from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
 
 
 def get_branch(project_id: int, branch_name: str):

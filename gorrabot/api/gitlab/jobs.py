@@ -1,4 +1,4 @@
-from api.gitlab import gitlab_session,GITLAB_API_PREFIX
+from gorrabot.api.gitlab import gitlab_session,GITLAB_API_PREFIX
 
 
 def get_commit_jobs(project_id: int, commit_id: int):

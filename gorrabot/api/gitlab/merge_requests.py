@@ -1,7 +1,7 @@
 import datetime
 
-from api.gitlab import gitlab_session, GITLAB_API_PREFIX
-from utils import parse_api_date
+from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
+from gorrabot.api.utils import parse_api_date
 
 
 def get_merge_requests(project_id: int, filters=None):

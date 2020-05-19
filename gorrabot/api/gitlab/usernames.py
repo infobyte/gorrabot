@@ -1,4 +1,4 @@
-from api.gitlab import gitlab_session, GITLAB_API_PREFIX
+from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
 
 
 # TODO DEPRECATE TO MULTIPLE ASSIGNEES -> get_usernames_from_mr_or_issue

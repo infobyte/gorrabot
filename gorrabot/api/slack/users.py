@@ -1,4 +1,4 @@
-from api.slack import slack_session, SLACK_API_PREFIX
+from gorrabot.api.slack import slack_session, SLACK_API_PREFIX
 
 
 def get_slack_user_data():

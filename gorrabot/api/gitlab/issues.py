@@ -1,4 +1,4 @@
-from api.gitlab import gitlab_session, GITLAB_API_PREFIX
+from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
 
 
 def get_issue(project_id: int, iid: int):

@@ -1,4 +1,4 @@
-from api.slack import slack_session, SLACK_API_PREFIX
+from gorrabot.api.slack import slack_session, SLACK_API_PREFIX
 
 
 def send_message(slack_user: str, text: str, slack_users_data: dict):
