@@ -16,5 +16,5 @@ class GitlabLabels:
     NO_CHANGELOG = 'no-changelog'
     SACATE_LA_GORRA = 'sacate-la-gorra'
     MULTIPLE_MR = 'multiple-merge-requests'
-    TEST = 'Test'
-    ACCEPTED = 'Accepted'
+    TEST = 'stage::Test'
+    ACCEPTED = 'stage::Accepted'
