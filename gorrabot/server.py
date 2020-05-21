@@ -59,9 +59,9 @@ def homepage():
         return 'Ignoring all!'
 
     mr_json = json
-    mr_attributtes = mr_json['object_attributes']
+    mr_attributes = mr_json['object_attributes']
     username = get_username(mr_json)
-    (project_id, iid) = (mr_attributtes['source_project_id'], mr_attributtes['iid'])
+    (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
 
     is_multi_main = is_multi_main_mr(mr_json)
 
@@ -72,20 +72,20 @@ def homepage():
     fill_fields_based_on_issue(mr_json)
 
     branch_regex = regex_dict[mr_json['repository']['name']]
-    if not re.match(branch_regex, mr_attributtes['source_branch']):
+    if not re.match(branch_regex, mr_attributes['source_branch']):
         comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
 
-    if mr_attributtes['work_in_progress']:
+    if mr_attributes['work_in_progress']:
         return 'Ignoring WIP MR'
-    if mr_attributtes['state'] == 'merged' and is_multi_main:
+    if mr_attributes['state'] == 'merged' and is_multi_main:
         notify_unmerged_superior_mrs(mr_json)
-    if mr_attributtes['state'] in ('merged', 'closed'):
+    if mr_attributes['state'] in ('merged', 'closed'):
         return 'Ignoring closed MR'
 
     if has_label(mr_json, GitlabLabels.NO_CHANGELOG):
         return f'Ignoring MR with label {GitlabLabels.NO_CHANGELOG}'
 
-    print(f"Processing MR #{mr_attributtes['iid']} of project {mr_json['repository']['name']}")
+    print(f"Processing MR #{mr_attributes['iid']} of project {mr_json['repository']['name']}")
 
     if not has_changed_changelog(project_id, iid, only_md=True):
         if has_changed_changelog(project_id, iid, only_md=False):
@@ -95,7 +95,7 @@ def homepage():
         comment_mr(project_id, iid, f"@{username}: {msg}")
         set_wip(project_id, iid)
 
-    if mr_attributtes['title'].lower().startswith('tkt '):
+    if mr_attributes['title'].lower().startswith('tkt '):
         comment_mr(project_id, iid, f"@{username}: {MSG_TKT_MR}", can_be_duplicated=False)
 
     return 'OK'

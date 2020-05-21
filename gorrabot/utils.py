@@ -6,6 +6,7 @@ from gorrabot.api.gitlab import GitlabLabels
 from gorrabot.api.gitlab.branches import get_branch
 from gorrabot.api.gitlab.issues import get_issue, get_issues
 from gorrabot.api.gitlab.merge_requests import update_mr, get_merge_requests, get_mr_last_commit
+from gorrabot.api.gitlab.projects import get_project_name
 from gorrabot.api.utils import parse_api_date
 from gorrabot.constants import regex_dict, decision_issue_message_interval, inactivity_time
 
@@ -15,10 +16,11 @@ def has_label(obj, label_name):
                for label in obj.get('labels', []))
 
 
-def get_related_issue_iid(mr_json: dict):
-    branch = mr_json["object_attributes"]['source_branch'] if "object_attributes" \
-                                                              in mr_json else mr_json['source_branch']
-    branch_regex = regex_dict[mr_json['repository']['name']]
+def get_related_issue_iid(mr: dict):
+    branch = mr['source_branch'] if "source_branch" in mr else mr["object_attributes"]["source_branch"]
+    project_id = mr["project_id"] if "project_id" in mr else mr["project"]["id"]
+    project_name = get_project_name(project_id)
+    branch_regex = regex_dict[project_name]
     try:
         iid = re.findall(branch_regex, branch)[0]
     except IndexError:
@@ -53,7 +55,7 @@ def fill_fields_based_on_issue(mr_json: dict):
     If the MR doesn't have a milestone, set it to the issue's
     milestone.
     """
-    mr = mr_json["object_attributes"]
+    mr = mr_json["object_attributes"] if "object_attributes" in mr_json else mr_json
     issue_iid = get_related_issue_iid(mr_json)
     project_id = mr['source_project_id']
     if issue_iid is None:
