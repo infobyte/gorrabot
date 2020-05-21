@@ -106,8 +106,9 @@ to_main_branch = {
 
 
 def create_similar_mr(parent_mr: dict, source_branch: str):
-    assert source_branch in to_main_branch.keys()
-    target_branch = to_main_branch[source_branch]
+    matches = [version for version in to_main_branch.keys() if version in source_branch]
+    assert len(matches) > 0
+    target_branch = to_main_branch[matches[0]]
     new_title = (
         f"{parent_mr['title']} ({target_branch.replace('/dev','')} edition)"
     )
