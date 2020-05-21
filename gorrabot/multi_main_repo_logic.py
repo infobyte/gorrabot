@@ -170,11 +170,12 @@ def retry_conflict_check_of_mrs_with_target_branch(project_id: int, target_branc
         )
 
 
-def notify_unmerged_superior_mrs(mr: dict):
+def notify_unmerged_superior_mrs(mr_json: dict):
     """Warn the user who merged mr if there also are ***REMOVED*** or ***REMOVED*** merge
     requests for the same issue."""
+    mr = mr_json["object_attributes"]
     assert mr['state'] == 'merged'
-    issue_iid = get_related_issue_iid(mr)
+    issue_iid = get_related_issue_iid(mr_json)
     project_id = mr['source_project_id']
     if issue_iid is None:
         return
@@ -222,8 +223,9 @@ def remove_version(branch: str):
     return branch.replace('***REMOVED***', 'xxx').replace('***REMOVED***', 'xxx').replace('***REMOVED***', 'xxx')
 
 
-def add_multiple_merge_requests_label_if_needed(mr: dict):
-    issue_iid = get_related_issue_iid(mr)
+def add_multiple_merge_requests_label_if_needed(mr_json: dict):
+    mr = mr_json["object_attributes"]
+    issue_iid = get_related_issue_iid(mr_json)
     project_id = mr['source_project_id']
     if issue_iid is None:
         return
@@ -248,7 +250,7 @@ def add_multiple_merge_requests_label_if_needed(mr: dict):
 
     if len(related_mrs) > 1:
         issue = get_issue(project_id, issue_iid)
-        if issue is None or has_label(mr, GitlabLabels.MULTIPLE_MR):
+        if issue is None or has_label(mr_json, GitlabLabels.MULTIPLE_MR):
             return
         new_labels = issue['labels']
         new_labels.append(GitlabLabels.MULTIPLE_MR)

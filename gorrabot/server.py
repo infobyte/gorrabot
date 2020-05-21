@@ -58,33 +58,34 @@ def homepage():
     if has_label(json, GitlabLabels.SACATE_LA_GORRA):
         return 'Ignoring all!'
 
-    mr = json['object_attributes']
-    username = get_username(json)
-    (project_id, iid) = (mr['source_project_id'], mr['iid'])
+    mr_json = json
+    mr_attributtes = mr_json['object_attributes']
+    username = get_username(mr_json)
+    (project_id, iid) = (mr_attributtes['source_project_id'], mr_attributtes['iid'])
 
-    is_multi_main = is_multi_main_mr(mr)
+    is_multi_main = is_multi_main_mr(mr_json)
 
-    check_issue_reference_in_description(mr)
+    check_issue_reference_in_description(mr_json)
     if is_multi_main:
-        add_multiple_merge_requests_label_if_needed(mr)
-    sync_related_issue(mr)
-    fill_fields_based_on_issue(mr)
+        add_multiple_merge_requests_label_if_needed(mr_json)
+    sync_related_issue(mr_json)
+    fill_fields_based_on_issue(mr_json)
 
-    branch_regex = regex_dict[mr['repository']['name']]
-    if not re.match(branch_regex, mr['source_branch']):
+    branch_regex = regex_dict[mr_json['repository']['name']]
+    if not re.match(branch_regex, mr_attributtes['source_branch']):
         comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
 
-    if mr['work_in_progress']:
+    if mr_attributtes['work_in_progress']:
         return 'Ignoring WIP MR'
-    if mr['state'] == 'merged' and is_multi_main:
-        notify_unmerged_superior_mrs(mr)
-    if mr['state'] in ('merged', 'closed'):
+    if mr_attributtes['state'] == 'merged' and is_multi_main:
+        notify_unmerged_superior_mrs(mr_json)
+    if mr_attributtes['state'] in ('merged', 'closed'):
         return 'Ignoring closed MR'
 
-    if has_label(json, GitlabLabels.NO_CHANGELOG):
+    if has_label(mr_json, GitlabLabels.NO_CHANGELOG):
         return f'Ignoring MR with label {GitlabLabels.NO_CHANGELOG}'
 
-    print(f"Processing MR #{mr['iid']} of project {mr['repository']['name']}")
+    print(f"Processing MR #{mr_attributtes['iid']} of project {mr_json['repository']['name']}")
 
     if not has_changed_changelog(project_id, iid, only_md=True):
         if has_changed_changelog(project_id, iid, only_md=False):
@@ -94,7 +95,7 @@ def homepage():
         comment_mr(project_id, iid, f"@{username}: {msg}")
         set_wip(project_id, iid)
 
-    if mr['title'].lower().startswith('tkt '):
+    if mr_attributtes['title'].lower().startswith('tkt '):
         comment_mr(project_id, iid, f"@{username}: {MSG_TKT_MR}", can_be_duplicated=False)
 
     return 'OK'
@@ -128,7 +129,7 @@ def get_changed_files(changes):
     return set(change['new_path'] for change in changes)
 
 
-def sync_related_issue(mr: dict):
+def sync_related_issue(mr_json: dict):
     """Change the status of the issue related to the new/updated MR
 
     Get the issue by matching the source branch name. If the issue has
@@ -141,13 +142,13 @@ def sync_related_issue(mr: dict):
     # Closed MR -> Do nothing, assume that another MR will be created
     Closed MR -> Delete status labels (set to new)
     """
-
-    issue_iid = get_related_issue_iid(mr)
+    mr = mr_json["object_attributes"]
+    issue_iid = get_related_issue_iid(mr_json)
     project_id = mr['source_project_id']
     if issue_iid is None:
         return
     issue = get_issue(project_id, issue_iid)
-    if issue is None or has_label(mr, GitlabLabels.MULTIPLE_MR):
+    if issue is None or has_label(mr_json, GitlabLabels.MULTIPLE_MR):
         return
 
     close = False
@@ -178,8 +179,9 @@ def sync_related_issue(mr: dict):
     return update_issue(project_id, issue_iid, data)
 
 
-def check_issue_reference_in_description(mr: dict):
-    issue_iid = get_related_issue_iid(mr)
+def check_issue_reference_in_description(mr_json: dict):
+    mr = mr_json["object_attributes"]
+    issue_iid = get_related_issue_iid(mr_json)
     if issue_iid is None:
         return
     if f'#{issue_iid}' in mr['description']:
@@ -190,8 +192,8 @@ def check_issue_reference_in_description(mr: dict):
     return update_mr(project_id, mr['iid'], {'description': new_desc})
 
 
-def is_multi_main_mr(mr):
-    return mr["repository"]["name"] == "***REMOVED***"  # TODO CHANGE FOR REACT AND OTHERS
+def is_multi_main_mr(mr_json):
+    return mr_json["repository"]["name"] == "***REMOVED***"  # TODO CHANGE FOR REACT AND OTHERS
 
 
 def main():

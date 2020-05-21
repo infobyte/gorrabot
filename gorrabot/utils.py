@@ -15,9 +15,10 @@ def has_label(obj, label_name):
                for label in obj.get('labels', []))
 
 
-def get_related_issue_iid(mr: dict):
-    branch = mr['source_branch']
-    branch_regex = regex_dict[mr['repository']['name']]
+def get_related_issue_iid(mr_json: dict):
+    branch = mr_json["object_attributes"]['source_branch'] if "object_attributes" \
+                                                              in mr_json else mr_json['source_branch']
+    branch_regex = regex_dict[mr_json['repository']['name']]
     try:
         iid = re.findall(branch_regex, branch)[0]
     except IndexError:
@@ -43,7 +44,7 @@ def get_branch_last_commit(project_id: int, branch_name: str):
     return branch['commit']
 
 
-def fill_fields_based_on_issue(mr: dict):
+def fill_fields_based_on_issue(mr_json: dict):
     """Complete the MR fields with data in its associated issue.
 
     If the MR doesn't have an assigned user, set to the issue's
@@ -52,8 +53,8 @@ def fill_fields_based_on_issue(mr: dict):
     If the MR doesn't have a milestone, set it to the issue's
     milestone.
     """
-
-    issue_iid = get_related_issue_iid(mr)
+    mr = mr_json["object_attributes"]
+    issue_iid = get_related_issue_iid(mr_json)
     project_id = mr['source_project_id']
     if issue_iid is None:
         return
