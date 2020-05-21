@@ -1,3 +1,8 @@
 from gorrabot import server
 
-server.main()
+
+app = server.app
+
+
+if __name__ == '__main__':
+    server.main()
