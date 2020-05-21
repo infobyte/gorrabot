@@ -16,7 +16,7 @@ NO_MD_CHANGELOG = (
     'mergear el MR.'
 )
 MSG_TKT_MR = (
-    'Tener merge requests con "Tkt ***REMOVED***" en el título no es muy útil ya que '
+    'Tener merge requests con `Tkt ` en el título no es muy útil ya que '
     'puedo ver esa información en el nombre del branch. Se podría usar un '
     'título más descriptivo para este merge request.'
 )
