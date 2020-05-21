@@ -48,7 +48,7 @@ setup(
     description="Gitlab bot made to automate checks and processes in the Faraday development.",
     entry_points={
         'console_scripts': [
-            'gorrabot=gorrabot.app:main',
+            'gorrabot=gorrabot.server:main',
             'gorrabot-slack-resume=gorrabot.slack_resume:main',
             'gorrabot-comment-stale-mr=gorrabot.comment_stale_merge_requests:main',
         ],
