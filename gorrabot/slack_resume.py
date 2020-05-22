@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import datetime
 import os
 import sys
 import json
@@ -121,4 +122,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    day_number = datetime.datetime.today().weekday()
+
+    if day_number < 5:
+        main()
+    else:
+        print("It's weekend, so I watch series, I'm not going to talk in slack")
