@@ -117,3 +117,7 @@ def main():
 
         if send and DRY_RUN is None:
             send_message(username, text, slack_user_data)
+
+
+if __name__ == '__main__':
+    main()
