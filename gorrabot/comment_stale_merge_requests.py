@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 
 from gorrabot.api.gitlab.merge_requests import comment_mr
