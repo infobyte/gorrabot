@@ -80,5 +80,5 @@ decision_issue_message_interval = datetime.timedelta(days=0)
 __other_regex = {
     '***REMOVED***': r'***REMOVED***'
 }
-regex_dict = defaultdict(lambda: r'^(?:tkt|mig|sup|exp)_(\d+)[-_].+', __other_regex)
+regex_dict = defaultdict(lambda: r'^(?:tkt|mig|sup|exp)_(\d+|y2k)[-_].+', __other_regex)
 
