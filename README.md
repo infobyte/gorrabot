@@ -190,6 +190,14 @@ having a continuous ***REMOVED*** seems to be a better choice.
 * [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
 * [***REMOVED***][gorrabot] Gitlab ID: ***REMOVED***
 
+### Gorrabot repo bot
+* [***REMOVED***][***REMOVED***] 
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][gorrabot]
+
+
 ### Comment staled messages:
 * [***REMOVED***][***REMOVED***]
 * [***REMOVED***][***REMOVED***]
