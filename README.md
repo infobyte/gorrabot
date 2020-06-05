@@ -71,16 +71,6 @@ Like with the previous feature, this check will just leave a comment in the
 merge request if doesn't pass, so the user could avoid this the next time.
 There is no need to set it to WIP.
 
-## Automatic retry of merge conflict jobs
-
-When a user pushes to a ***REMOVED*** branch, retry the merge conflict checker job on
-its corresponding ***REMOVED*** branch, so we can find out about merge conflicts as
-early as possible.
-
-Also, pushes to `***REMOVED***/dev`, `***REMOVED***/dev` and `***REMOVED***/dev` will retry all merge
-conflict checker jobs of open merges request whose target branch is the same as
-the pushed branch.
-
 ## Automatic creation of upper versions MRs
 
 When a MR of a ***REMOVED*** feature also needs changes in ***REMOVED***, the suggested way to
