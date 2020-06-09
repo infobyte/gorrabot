@@ -25,7 +25,10 @@ def get_related_issue_iid(mr: dict):
         iid = re.findall(branch_regex, branch)[0]
     except IndexError:
         return
-    return int(iid)
+    try:
+        return int(iid)
+    except ValueError:
+        return None
 
 
 def filter_current_or_upcoming_mrs(merge_requests: List[dict]):
