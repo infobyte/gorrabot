@@ -16,12 +16,6 @@ from gorrabot.utils import get_related_issue_iid, get_branch_last_commit, fill_f
 def handle_multi_main_push(push: dict, prefix: str):
     branch_name = push['ref'][len(prefix):]
 
-    if '/dev' in branch_name:
-        retry_conflict_check_of_mrs_with_target_branch(
-            push['project_id'],
-            branch_name
-        )
-
     if '***REMOVED***' in branch_name:
         parent_branches = [
             branch_name.replace('***REMOVED***', '***REMOVED***')
@@ -36,9 +30,6 @@ def handle_multi_main_push(push: dict, prefix: str):
         ]
     else:
         parent_branches = []
-
-    for parent_branch_name in parent_branches:
-        retry_merge_conflict_check_of_branch(push['project_id'], parent_branch_name)
 
     if push['checkout_sha'] is not None:
         # Deleting a branch triggers a push event, and I don't want
@@ -135,40 +126,6 @@ Created with <3 by @gorrabot, based on merge request
         'labels': new_labels
     }
     return mr
-
-
-def retry_merge_conflict_check_of_branch(project_id: int, branch_name: str):
-    last_commit = get_branch_last_commit(project_id, branch_name)
-    if last_commit is None:
-        return
-    jobs = get_commit_jobs(project_id, last_commit['id'])
-    try:
-        mc_check_job = next(job for job in jobs
-                            if job['name'] == 'merge_conflict_check')
-    except StopIteration:
-        return
-    print(f'Retrying merge conflict check job for branch '
-          f'{branch_name}')
-    retry_job(project_id, mc_check_job['id'])
-
-
-def retry_conflict_check_of_mrs_with_target_branch(project_id: int, target_branch: str):
-    """Find all MRs with the specified target branch, and in the current
-    or upcoming milestones. Retry the merge conflict check job of all of
-    them"""
-    merge_requests = get_merge_requests(
-        project_id,
-        {'target_branch': target_branch, 'state': 'opened'}
-    )
-
-    # This will ignore merge requests of old milestones
-    # merge_requests = filter_current_or_upcoming_mrs(merge_requests)
-
-    for mr in merge_requests:
-        retry_merge_conflict_check_of_branch(
-            project_id,
-            mr['source_branch']
-        )
 
 
 def notify_unmerged_superior_mrs(mr_json: dict):
