@@ -60,7 +60,10 @@ def set_wip(project_id: int, iid: int):
     res.raise_for_status()
     mr = res.json()
 
-    assert not mr['work_in_progress'] and not mr['title'].startswith('WIP:')
+    assert not mr['work_in_progress']
+    assert not mr['title'].startswith('WIP:')
+    assert not mr['title'].startswith('Draft:')
+
     data = {"title": "WIP: " + mr['title']}
     return update_mr(project_id, iid, data)
 

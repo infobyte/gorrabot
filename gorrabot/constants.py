@@ -35,8 +35,8 @@ MSG_NEW_MR_CREATED = (
     'Vi que pusheaste a este branch pero no había ningún merge request '
     'creado. Me tomé la molestia de crearlo por vos, usando la información '
     'de un merge request de ***REMOVED***. Si tenés que hacer más cambios (es decir, '
-    'no se trata de un simple merge), poné el MR en WIP para aclarar que '
-    'todavía no está terminado.'
+    'no se trata de un simple merge), poné el MR en WIP/Draft para aclarar que'
+    ' todavía no está terminado.'
 )
 MSG_CHECK_SUPERIOR_MR = (
     'Noté que mergeaste el branch que implementa esto para una versión '
@@ -44,18 +44,19 @@ MSG_CHECK_SUPERIOR_MR = (
     'haya conflictos entre ***REMOVED***/dev, ***REMOVED***/dev y ***REMOVED***/dev.'
 )
 MSG_STALE_MR = """
-Noté que este merge request está en WIP y sin actividad hace bastante tiempo.
+Noté que este merge request está en WIP/Draft y sin actividad hace bastante 
+tiempo.
 Para evitar que quede obsoleto e inmergeable, estaría bueno mirarlo. Te
 recomiendo proceder con alguna de estas acciones:
 
-* Si ya está listo para mergear, sacale el `WIP: ` del título y esperá a que
-  reciba feedback
+* Si ya está listo para mergear, sacale el `WIP: ` o `Draft: ` del título y 
+  esperá a que reciba feedback
 * Si se trata de un merge request experimental o pensado a largo plazo, cambiá
   el nombre del source branch de `tkt_....` a `exp_....` para que lo tenga en
   cuenta
 * Si te parece que los cambios no son más requeridos, cerrá el merge request
 * En caso contrario, hacé las modificaciones que sean necesarias y sacarle
-  el WIP
+  el WIP o Draft
 * También se puede agregar el label especial `no-me-apures` para que no vuelva
   a mostrar este mensaje en este merge request. Esto es una inhibición de mis
   gorra-poderes así que prefiero que no se abuse de esta opción

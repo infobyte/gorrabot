@@ -85,19 +85,20 @@ def main():
         text = "H0L4! Este es tu reporte que te da tu amigo, gorrabot :gorrabot2:!\n"
         send = False
         if len(notify_dict[username][STALE_WIP]) > 0:
-            text += ":warning: Algunos de tus MR con WIP estan estancados, estos son!:\n"
+            text += ":warning: Algunos de tus MR con WIP/Draft estan " \
+                    "estancados, estos son!:\n"
             text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_WIP]])
             send = True
         else:
-            text += "No tenes MR en WIP estancados :ditto:!\n"
+            text += "No tenes MR en WIP/Draft estancados :ditto:!\n"
         if len(notify_dict[username][STALE_NO_WIP]) > 0:
-            text += ":warning: Algunos de tus MR sin WIP estan estancados, si creés que alguno tiene todo lo necesario " \
+            text += ":warning: Algunos de tus MR sin WIP/Draft estan estancados, si creés que alguno tiene todo lo necesario " \
                     "para ser revisado, pedí approves en ***REMOVED***-dev. También fijate si se puede aclarar mejor qué se " \
                     "hizo y por qué, para hacerle la tarea más fácil a quien haga review de esto:\n"
             text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_NO_WIP]])
             send = True
         else:
-            text += "No tenes MR sin WIP estancados :ditto:!\n"
+            text += "No tenes MR sin WIP/Draft estancados :ditto:!\n"
         if len(notify_dict[username][ACCEPTED_ISSUES]) > MAX_ISSUES_ACCEPTED:
             text += f":x: Tenes mas de {MAX_ISSUES_ACCEPTED} issues en 'Accepted', fijate:\n"
             text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][ACCEPTED_ISSUES]])

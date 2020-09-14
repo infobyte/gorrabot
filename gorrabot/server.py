@@ -76,7 +76,7 @@ def homepage():
         comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
 
     if mr_attributes['work_in_progress']:
-        return 'Ignoring WIP MR'
+        return 'Ignoring WIP/Draft MR'
     if mr_attributes['state'] == 'merged' and is_multi_main:
         notify_unmerged_superior_mrs(mr_json)
     if mr_attributes['state'] in ('merged', 'closed'):
