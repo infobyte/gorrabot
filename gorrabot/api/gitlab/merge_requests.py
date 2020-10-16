@@ -64,7 +64,7 @@ def set_wip(project_id: int, iid: int):
     assert not mr['title'].startswith('WIP:')
     assert not mr['title'].startswith('Draft:')
 
-    data = {"title": "WIP: " + mr['title']}
+    data = {"title": "Draft: " + mr['title']}
     return update_mr(project_id, iid, data)
 
 

@@ -8,7 +8,7 @@ from collections import defaultdict
 from gorrabot.api.constants import gitlab_to_slack_user, MAX_ISSUES_ACCEPTED
 from gorrabot.api.gitlab.issues import get_accepted_issues
 from gorrabot.api.gitlab.usernames import get_usernames_from_mr_or_issue
-from gorrabot.api.slack.messages import send_message
+from gorrabot.api.slack.messages import send_message_to_user
 from gorrabot.api.slack.users import get_slack_user_data
 from gorrabot.constants import OLD_MEMBERS
 from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests
@@ -119,7 +119,7 @@ def main():
         text += "Nos vemos en el proximo reporte :ninja:"
 
         if send and DRY_RUN is None:
-            send_message(username, text, slack_user_data)
+            send_message_to_user(username, text, slack_user_data)
 
 
 if __name__ == '__main__':

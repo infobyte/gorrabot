@@ -1,6 +1,8 @@
+from typing import List, NoReturn
+import re
+
 from gorrabot.api.gitlab import GitlabLabels
 from gorrabot.api.gitlab.issues import get_issue, update_issue
-from gorrabot.api.gitlab.jobs import get_commit_jobs, retry_job
 from gorrabot.api.gitlab.merge_requests import (
     get_merge_requests,
     comment_mr,
@@ -9,27 +11,41 @@ from gorrabot.api.gitlab.merge_requests import (
     get_mr
 )
 from gorrabot.api.gitlab.usernames import get_username
-from gorrabot.constants import MSG_NEW_MR_CREATED, MSG_CHECK_SUPERIOR_MR
-from gorrabot.utils import get_related_issue_iid, get_branch_last_commit, fill_fields_based_on_issue, has_label
+from gorrabot.config import config
+from gorrabot.constants import MSG_NEW_MR_CREATED, MSG_CHECK_SUPERIOR_MR, regex_dict
+from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
 
 
-def handle_multi_main_push(push: dict, prefix: str):
+def get_previous_or_next(project_name: str, branch_name: str, previous: bool) -> List[str]:
+    """
+    This will get the branch (e.g. tkt_***REMOVED***_XXXX_extra), and check if the previous branches MR exists
+    (e.g. tkt_***REMOVED***_XXXX_extra; not tkt_***REMOVED***_XXXX_extra)
+    """
+    parent_branches: List[str] = config[project_name]['multi-branch']
+    main_branch = re.match(regex_dict[project_name], branch_name).groups()[0]
+    if previous:
+        others_parent_main_branches = parent_branches[:parent_branches.index(main_branch)]
+    else:
+        others_parent_main_branches = parent_branches[parent_branches.index(main_branch) + 1:]
+    return [
+        branch_name.replace(main_branch, others_parent_main_branch)  # "tkt_***REMOVED***_XXXX_extra".replace('***REMOVED***','***REMOVED***')
+        for others_parent_main_branch in others_parent_main_branches
+    ]
+
+
+def get_previous(project_name: str, branch_name: str):
+    return get_previous_or_next(project_name, branch_name, True)
+
+
+def get_next(project_name: str, branch_name: str):
+    return get_previous_or_next(project_name, branch_name, False)
+
+
+def handle_multi_main_push(push: dict, prefix: str) -> str:
+    project_name = push["repository"]["name"]
     branch_name = push['ref'][len(prefix):]
 
-    if '***REMOVED***' in branch_name:
-        parent_branches = [
-            branch_name.replace('***REMOVED***', '***REMOVED***')
-        ]
-    elif '***REMOVED***' in branch_name:
-        # keep ***REMOVED*** first so ensure_upper_version_is_created
-        # won't create a MR based on another MR automatically
-        # created by gorrabot
-        parent_branches = [
-            branch_name.replace('***REMOVED***', '***REMOVED***'),
-            branch_name.replace('***REMOVED***', '***REMOVED***'),
-        ]
-    else:
-        parent_branches = []
+    previous_branches = get_previous(project_name, branch_name)
 
     if push['checkout_sha'] is not None:
         # Deleting a branch triggers a push event, and I don't want
@@ -37,22 +53,23 @@ def handle_multi_main_push(push: dict, prefix: str):
         # deleted by checking the checkout_sha.
         # See https://gitlab.com/gitlab-org/gitlab-ce/issues/54216
         ensure_upper_version_is_created(
-            push['project_id'],
+            push,
             branch_name,
-            parent_branches
+            previous_branches
         )
 
     return "OK"
 
 
-def ensure_upper_version_is_created(project_id: int, branch_name: str, parent_branches):
+def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branches: List[str]) -> NoReturn:
     """If there exists a MR with a source branch that is in
-    parent_branches and there is no MR whose source branch is
+    previous_branches and there is no MR whose source branch is
     branch_name, create a new MR inheriting from the parent MR.
 
     Exclude all closed MRs from this logic.
     """
-
+    project_name = push["repository"]["name"]
+    project_id = push['project_id']
     mrs_for_this_branch = get_merge_requests(
         project_id,
         {'source_branch': branch_name}
@@ -60,11 +77,11 @@ def ensure_upper_version_is_created(project_id: int, branch_name: str, parent_br
     if any(mr['state'] != 'closed' for mr in mrs_for_this_branch):
         return
 
-    parent_mr = None
-    for parent_branch_name in parent_branches:
+    previous_mr = None
+    for previous_branch_name in previous_branches:
         merge_requests = get_merge_requests(
             project_id,
-            {'source_branch': parent_branch_name}
+            {'source_branch': previous_branch_name}
         )
         merge_requests = [
             mr for mr in merge_requests
@@ -73,16 +90,16 @@ def ensure_upper_version_is_created(project_id: int, branch_name: str, parent_br
         if len(merge_requests) == 1:
             # If the length is greater than 1, I don't know which branch should
             # I use.
-            parent_mr = merge_requests[0]
+            previous_mr = merge_requests[0]
             break
 
-    if parent_mr is None:
+    if previous_mr is None:
         return
 
-    mr_data = create_similar_mr(parent_mr, branch_name)
-    new_mr = create_mr(parent_mr['source_project_id'], mr_data)
+    mr_data = create_similar_mr(previous_mr, project_name, branch_name)
+    new_mr = create_mr(previous_mr['source_project_id'], mr_data)
     fill_fields_based_on_issue(new_mr)
-    username = get_username(parent_mr)
+    username = get_username(previous_mr)
     comment_mr(
         project_id,
         new_mr['iid'],
@@ -90,18 +107,11 @@ def ensure_upper_version_is_created(project_id: int, branch_name: str, parent_br
     )
 
 
-to_main_branch = {
-    '***REMOVED***': '***REMOVED***/dev',
-    '***REMOVED***': '***REMOVED***/dev',
-}
-
-
-def create_similar_mr(parent_mr: dict, source_branch: str):
-    matches = [version for version in to_main_branch.keys() if version in source_branch]
-    assert len(matches) > 0
-    target_branch = to_main_branch[matches[0]]
+def create_similar_mr(parent_mr: dict, project_name: str, branch_name: str) -> dict:
+    main_branch = re.match(regex_dict[project_name], branch_name).groups()[0]
+    target_branch = f"{main_branch}/dev"
     new_title = (
-        f"{parent_mr['title']} ({target_branch.replace('/dev','')} edition)"
+        f"{parent_mr['title']} ({main_branch} edition)"
     )
     # if not new_title.startswith('WIP: '):
     #     new_title = 'WIP: ' + new_title
@@ -119,7 +129,7 @@ Created with <3 by @gorrabot, based on merge request
     new_labels = list(new_labels)
 
     mr = {
-        'source_branch': source_branch,
+        'source_branch': branch_name,
         'target_branch': target_branch,
         'title': new_title,
         'description': new_description,
@@ -142,26 +152,12 @@ def notify_unmerged_superior_mrs(mr_json: dict):
     related_mrs = [rmr for rmr in related_mrs
                    if rmr['state'] not in ('merged', 'closed')]
 
-    if '***REMOVED***' in mr['source_branch']:
-        expected_versions = ['***REMOVED***', '***REMOVED***']
-    elif '***REMOVED***' in mr['source_branch']:
-        expected_versions = ['***REMOVED***']
-    else:
-        expected_versions = []
+    expected_next_branches = get_next(project_id, mr['source_branch'])
 
-    global_branch_name = remove_version(mr['source_branch'])
-
-    # Discard MRs with different branch names (besides ***REMOVED***/***REMOVED***/***REMOVED***)
+    # Discard MRs that are not of expected_next_branches
     related_mrs = [
         rmr for rmr in related_mrs
-        if remove_version(rmr['source_branch']) == global_branch_name
-    ]
-
-    # Discard MRs that are not of expected_versions
-    related_mrs = [
-        rmr for rmr in related_mrs
-        if any(version in rmr['source_branch']
-               for version in expected_versions)
+        if rmr['source_branch'] in expected_next_branches
     ]
 
     # The data from the webhook doesn't contain merged_by
@@ -175,10 +171,6 @@ def notify_unmerged_superior_mrs(mr_json: dict):
             f'@{username}: {MSG_CHECK_SUPERIOR_MR}',
             can_be_duplicated=False,
         )
-
-
-def remove_version(branch: str):
-    return branch.replace('***REMOVED***', 'xxx').replace('***REMOVED***', 'xxx').replace('***REMOVED***', 'xxx')
 
 
 def add_multiple_merge_requests_label_if_needed(mr_json: dict):

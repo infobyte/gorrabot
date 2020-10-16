@@ -29,7 +29,7 @@ with open('README.md') as readme_file:
     readme = readme_file.read()
 history = readme
 
-requirements = ['requests', 'flask']
+requirements = ['requests', 'flask', 'gunicorn', 'pyyaml']
 
 setup(
     author="Matias Lang",

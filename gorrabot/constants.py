@@ -1,6 +1,8 @@
 import datetime
 from collections import defaultdict
 
+from gorrabot.config import config
+
 OLD_MEMBERS = [
     '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***',
     '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***']
@@ -79,7 +81,9 @@ decision_issue_message_interval = datetime.timedelta(days=0)
 
 
 __other_regex = {
-    '***REMOVED***': r'***REMOVED***'
+    project_name: config[project_name]['regex']
+    for project_name in config
+    if 'regex' in config[project_name]
 }
 regex_dict = defaultdict(lambda: r'^(?:tkt|mig|sup|exp)_(\d+|y2k)[-_].+', __other_regex)
 

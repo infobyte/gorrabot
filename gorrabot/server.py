@@ -1,4 +1,6 @@
 import re
+
+import flask
 from flask import Flask, request, abort
 
 from gorrabot.api.gitlab import (
@@ -14,6 +16,8 @@ from gorrabot.api.gitlab.merge_requests import (
     comment_mr
 )
 from gorrabot.api.gitlab.usernames import get_username
+from gorrabot.api.slack.messages import send_message_to_error_channel
+from gorrabot.config import config
 from gorrabot.constants import (
     NO_MD_CHANGELOG,
     MSG_BAD_BRANCH_NAME,
@@ -60,6 +64,13 @@ def homepage():
 
     mr_json = json
     mr_attributes = mr_json['object_attributes']
+
+    project_name = mr_json["repository"]["name"]
+    if project_name not in config:
+        send_message_to_error_channel(
+            text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
+        )
+        return flask.abort(400, "Project not in the configuration")
     username = get_username(mr_json)
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
 
@@ -103,12 +114,19 @@ def homepage():
 
 def handle_push(push: dict):
     prefix = 'refs/heads/'
-    if not push['ref'].startswith(prefix):  # TODO CHANGE FOR REACT AND OTHERS
+
+    if not push['ref'].startswith(prefix):
         msg = f'Unknown ref name {push["ref"]}'
         print(msg)
         return msg
 
-    if push["repository"]["name"] == "***REMOVED***":
+    project_name = push["repository"]["name"]
+    if project_name not in config:
+        send_message_to_error_channel(
+            text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
+        )
+        return flask.abort(400, "project not in the configuration")
+    if 'multi-branch' in config[project_name]:
         return handle_multi_main_push(push, prefix)
 
     return 'OK'
@@ -193,7 +211,7 @@ def check_issue_reference_in_description(mr_json: dict):
 
 
 def is_multi_main_mr(mr_json):
-    return mr_json["repository"]["name"] == "***REMOVED***"  # TODO CHANGE FOR REACT AND OTHERS
+    return 'multi-branch' in config[mr_json["repository"]["name"]]
 
 
 def main():
