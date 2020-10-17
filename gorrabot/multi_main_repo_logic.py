@@ -12,6 +12,7 @@ from gorrabot.api.gitlab.merge_requests import (
     get_mr
 )
 from gorrabot.api.gitlab.usernames import get_username
+from gorrabot.api.slack.messages import send_debug_message
 from gorrabot.config import config
 from gorrabot.constants import MSG_NEW_MR_CREATED, MSG_CHECK_SUPERIOR_MR, regex_dict
 from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
@@ -32,6 +33,7 @@ def get_previous_or_next(project_name: str, branch_name: str, previous: bool) ->
         others_parent_main_branches = parent_branches[:parent_branches.index(main_branch)]
     else:
         others_parent_main_branches = parent_branches[parent_branches.index(main_branch) + 1:]
+    send_debug_message(f"{others_parent_main_branches}")
     return [
         branch_name.replace(main_branch, others_parent_main_branch)  # "tkt_***REMOVED***_XXXX_extra".replace('***REMOVED***','***REMOVED***')
         for others_parent_main_branch in others_parent_main_branches
@@ -48,6 +50,7 @@ def get_next(project_name: str, branch_name: str):
 
 def handle_multi_main_push(push: dict, prefix: str) -> str:
     logger.info("Handling multi main branch push")
+    send_debug_message("Handling multi main branch push")
     project_name = push["repository"]["name"]
     branch_name = push['ref'][len(prefix):]
 
@@ -58,7 +61,7 @@ def handle_multi_main_push(push: dict, prefix: str) -> str:
         # that to create a new MR. So check that the branch wasn't
         # deleted by checking the checkout_sha.
         # See https://gitlab.com/gitlab-org/gitlab-ce/issues/54216
-        ensure_upper_version_is_created(
+        return ensure_upper_version_is_created(
             push,
             branch_name,
             previous_branches
@@ -67,7 +70,7 @@ def handle_multi_main_push(push: dict, prefix: str) -> str:
     return "OK"
 
 
-def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branches: List[str]) -> NoReturn:
+def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branches: List[str]) -> str:
     """If there exists a MR with a source branch that is in
     previous_branches and there is no MR whose source branch is
     branch_name, create a new MR inheriting from the parent MR.
@@ -75,6 +78,7 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
     Exclude all closed MRs from this logic.
     """
     logger.info(f"Checking if other main branch/MR exists of {branch_name}")
+    send_debug_message(f"Checking if other main branch/MR exists of {branch_name}")
     project_name = push["repository"]["name"]
     project_id = push['project_id']
     mrs_for_this_branch = get_merge_requests(
@@ -83,7 +87,8 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
     )
     if any(mr['state'] != 'closed' for mr in mrs_for_this_branch):
         logger.info(f"All MR are closed")
-        return
+        send_debug_message(f"All MR are closed")
+        return "OK, All MR are closed"
 
     previous_mr = None
     for previous_branch_name in previous_branches:
@@ -100,16 +105,20 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
             # I use.
             previous_mr = merge_requests[0]
             break
+        else:
+            send_debug_message(f"{merge_requests}")
 
     if previous_mr is None:
-        logger.info(f"Cant find 1 MR (could be more)")
-        return
+        logger.info(f"Cant find 1 MR (could be more), {previous_branches}")
+        send_debug_message(f"Cant find 1 MR (could be more), {previous_branches}")
+        return f"Cant find 1 MR (could be more), {previous_branches}"
+
 
     mr_data = create_similar_mr(previous_mr, project_name, branch_name)
     new_mr = create_mr(previous_mr['source_project_id'], mr_data)
     fill_fields_based_on_issue(new_mr)
     username = get_username(previous_mr)
-    comment_mr(
+    return comment_mr(
         project_id,
         new_mr['iid'],
         f'@{username}: {MSG_NEW_MR_CREATED}'
