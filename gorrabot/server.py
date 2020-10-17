@@ -1,4 +1,5 @@
 from logging import getLogger, INFO
+from typing import NoReturn
 import re
 
 import flask
@@ -37,6 +38,7 @@ app = Flask(__name__)
 logger = getLogger(__name__)
 logger.setLevel(INFO)
 
+
 @app.route('/status')
 def status():
     return "OK"
@@ -69,73 +71,10 @@ def homepage():
 
     logger.info("Handling a MR event")
     send_debug_message("Handling a MR event")
-
-    if has_label(json, GitlabLabels.SACATE_LA_GORRA):
-        logger.warning('Ignoring because of label flag')
-        send_debug_message('Ignoring because of label flag')
-        return 'Ignoring all!'
-
-    mr_json = json
-    mr_attributes = mr_json['object_attributes']
-
-    project_name = mr_json["repository"]["name"]
-    if project_name not in config:
-        logger.warning('Project not in the configuration')
-        send_debug_message('Project not in the configuration')
-        send_message_to_error_channel(
-            text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
-        )
-        return flask.abort(400, "Project not in the configuration")
-    username = get_username(mr_json)
-    (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
-
-    branch_regex = regex_dict[mr_json['repository']['name']]
-    if not re.match(branch_regex, mr_attributes['source_branch']):
-        logger.info("Branch do not match regex")
-        send_debug_message("Branch do not match regex")
-        comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
-
-    is_multi_main = is_multi_main_mr(mr_json)
-
-    check_issue_reference_in_description(mr_json)
-    if is_multi_main:
-        add_multiple_merge_requests_label_if_needed(mr_json)
-    sync_related_issue(mr_json)
-    fill_fields_based_on_issue(mr_json)
-
-    if mr_attributes['work_in_progress']:
-        logger.info("Ignoring because of WIP status")
-        send_debug_message("Ignoring because of WIP status")
-        return 'Ignoring WIP/Draft MR'
-    if mr_attributes['state'] == 'merged' and is_multi_main:
-        logger.info("Notifying a Merge to superiors main branches")
-        send_debug_message("Notifying a Merge to superiors main branches")
-        notify_unmerged_superior_mrs(mr_json)
-    if mr_attributes['state'] in ('merged', 'closed'):
-        logger.info("Ignoring because of close status")
-        send_debug_message("Ignoring because of close status")
-        return 'Ignoring closed MR'
-
-    if has_label(mr_json, GitlabLabels.NO_CHANGELOG):
-        return f'Ignoring MR with label {GitlabLabels.NO_CHANGELOG}'
-
-    print(f"Processing MR #{mr_attributes['iid']} of project {mr_json['repository']['name']}")
-
-    if not has_changed_changelog(project_id, iid, only_md=True):
-        if has_changed_changelog(project_id, iid, only_md=False):
-            msg = NO_MD_CHANGELOG
-        else:
-            msg = MSG_MISSING_CHANGELOG
-        comment_mr(project_id, iid, f"@{username}: {msg}")
-        set_wip(project_id, iid)
-
-    if mr_attributes['title'].lower().startswith('tkt '):
-        comment_mr(project_id, iid, f"@{username}: {MSG_TKT_MR}", can_be_duplicated=False)
-
-    return 'OK'
+    return handle_mr(json)
 
 
-def handle_push(push: dict):
+def handle_push(push: dict) -> str:
     prefix = 'refs/heads/'
 
     if not push['ref'].startswith(prefix):
@@ -167,6 +106,78 @@ def handle_push(push: dict):
             return handle_multi_main_push(push, prefix)
 
     return 'OK'
+
+
+def handle_mr(mr_json: dict) -> str:
+    if has_label(mr_json, GitlabLabels.SACATE_LA_GORRA):
+        logger.warning('Ignoring because of label flag')
+        send_debug_message('Ignoring because of label flag')
+        return 'Ignoring all!'
+
+    mr_attributes = mr_json['object_attributes']
+    project_name = mr_json["repository"]["name"]
+
+    if project_name not in config:
+        logger.warning('Project not in the configuration')
+        send_debug_message('Project not in the configuration')
+        send_message_to_error_channel(
+            text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
+        )
+        return flask.abort(400, "Project not in the configuration")
+
+    username = get_username(mr_json)
+    (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
+
+    branch_regex = regex_dict[mr_json['repository']['name']]
+    if not re.match(branch_regex, mr_attributes['source_branch']):
+        logger.info("Branch do not match regex")
+        send_debug_message("Branch do not match regex")
+        comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
+
+    is_multi_main = is_multi_main_mr(mr_json)
+
+    print(f"Processing MR #{mr_attributes['iid']} of project {mr_json['repository']['name']}")
+
+    check_status(mr_json, project_name)
+    check_issue_reference_in_description(mr_json)
+    if is_multi_main:
+        add_multiple_merge_requests_label_if_needed(mr_json)
+    sync_related_issue(mr_json)
+    fill_fields_based_on_issue(mr_json)
+
+    if mr_attributes['state'] == 'merged' and is_multi_main:
+        logger.info("Notifying a Merge to superiors main branches")
+        send_debug_message("Notifying a Merge to superiors main branches")
+        notify_unmerged_superior_mrs(mr_json)
+    if mr_attributes['state'] in ('merged', 'closed'):
+        logger.info("Ignoring because of close status")
+        send_debug_message("Ignoring because of close status")
+        return 'Ignoring closed MR'
+
+    if mr_attributes['title'].lower().startswith('tkt '):
+        comment_mr(project_id, iid, f"@{username}: {MSG_TKT_MR}", can_be_duplicated=False)
+
+    return 'OK'
+
+
+def check_status(mr_json: dict, project_name: str) -> NoReturn:
+    if has_label(mr_json, GitlabLabels.NO_CHANGELOG) or \
+            ('flags' in config[project_name] and "NO_CHANGELOG" in config[project_name]['flags'].upper()):
+        logger.info('Ignoring MR Changelog')
+        send_debug_message('Ignoring MR Changelog')
+        return
+    mr_attributes = mr_json['object_attributes']
+    (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
+    username = get_username(mr_json)
+
+    if not has_changed_changelog(project_id, iid, only_md=True):
+        if has_changed_changelog(project_id, iid, only_md=False):
+            msg = NO_MD_CHANGELOG
+        else:
+            msg = MSG_MISSING_CHANGELOG
+        comment_mr(project_id, iid, f"@{username}: {msg}")
+        set_wip(project_id, iid)
+        mr_attributes['work_in_progress'] = True
 
 
 # @ehorvat: I believe this should be in a utils as it depends on gitlab
@@ -219,7 +230,7 @@ def sync_related_issue(mr_json: dict):
 
     if mr['work_in_progress']:
         new_labels.append(GitlabLabels.ACCEPTED)
-    elif mr['state'] == 'opened' and not mr['work_in_progress']:
+    elif mr['state'] == 'opened':
         new_labels.append(GitlabLabels.TEST)
     elif mr['state'] == 'merged':
         close = True
