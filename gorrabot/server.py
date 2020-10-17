@@ -133,7 +133,7 @@ def handle_push(push: dict):
 
     if not re.match(branch_regex, branch_name):
         if not re.match(r"^((dev|master)|(.*/(dev|master)))$", branch_name):
-            send_message_to_error_channel(f"Unexpected push to {project_name}, branch {branch_name} do not follow "
+            send_message_to_error_channel(f"Unexpected push to `{project_name}`, branch `{branch_name}` do not follow "
                                           "expected regex format")
     else:
         if 'multi-branch' in config[project_name]:
