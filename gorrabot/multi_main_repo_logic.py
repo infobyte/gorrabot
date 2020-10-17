@@ -1,3 +1,4 @@
+from logging import getLogger, INFO
 from typing import List, NoReturn
 import re
 
@@ -14,6 +15,10 @@ from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.config import config
 from gorrabot.constants import MSG_NEW_MR_CREATED, MSG_CHECK_SUPERIOR_MR, regex_dict
 from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
+
+
+logger = getLogger(__name__)
+logger.setLevel(INFO)
 
 
 def get_previous_or_next(project_name: str, branch_name: str, previous: bool) -> List[str]:
@@ -42,6 +47,7 @@ def get_next(project_name: str, branch_name: str):
 
 
 def handle_multi_main_push(push: dict, prefix: str) -> str:
+    logger.info("Handling multi main branch push")
     project_name = push["repository"]["name"]
     branch_name = push['ref'][len(prefix):]
 
@@ -68,6 +74,7 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
 
     Exclude all closed MRs from this logic.
     """
+    logger.info(f"Checking if other main branch/MR exists of {branch_name}")
     project_name = push["repository"]["name"]
     project_id = push['project_id']
     mrs_for_this_branch = get_merge_requests(
@@ -75,6 +82,7 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
         {'source_branch': branch_name}
     )
     if any(mr['state'] != 'closed' for mr in mrs_for_this_branch):
+        logger.info(f"All MR are closed")
         return
 
     previous_mr = None
@@ -94,6 +102,7 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
             break
 
     if previous_mr is None:
+        logger.info(f"Cant find 1 MR (could be more)")
         return
 
     mr_data = create_similar_mr(previous_mr, project_name, branch_name)
