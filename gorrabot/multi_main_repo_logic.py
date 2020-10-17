@@ -1,5 +1,5 @@
-from logging import getLogger, INFO
-from typing import List, NoReturn
+from logging import getLogger
+from typing import List
 import re
 
 from gorrabot.api.gitlab import GitlabLabels
@@ -18,7 +18,7 @@ from gorrabot.constants import MSG_NEW_MR_CREATED, MSG_CHECK_SUPERIOR_MR, regex_
 from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
 
 
-logger = getLogger()
+logger = getLogger(__name__)
 
 
 def get_previous_or_next(project_name: str, branch_name: str, previous: bool) -> List[str]:
@@ -112,7 +112,6 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
         send_debug_message(f"Cant find 1 MR (could be more), {previous_branches}")
         return f"Cant find 1 MR (could be more), {previous_branches}"
 
-
     mr_data = create_similar_mr(previous_mr, project_name, branch_name)
     new_mr = create_mr(previous_mr['source_project_id'], mr_data)
     fill_fields_based_on_issue(new_mr)
@@ -155,7 +154,7 @@ Created with <3 by @gorrabot, based on merge request
     return mr
 
 
-def notify_unmerged_superior_mrs(mr_json: dict):
+def notify_unmerged_superior_mrs(mr_json: dict, project_name: str):
     """Warn the user who merged mr if there also are ***REMOVED*** or ***REMOVED*** merge
     requests for the same issue."""
     mr = mr_json["object_attributes"]
@@ -169,7 +168,7 @@ def notify_unmerged_superior_mrs(mr_json: dict):
     related_mrs = [rmr for rmr in related_mrs
                    if rmr['state'] not in ('merged', 'closed')]
 
-    expected_next_branches = get_next(project_id, mr['source_branch'])
+    expected_next_branches = get_next(project_name, mr['source_branch'])
 
     # Discard MRs that are not of expected_next_branches
     related_mrs = [

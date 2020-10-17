@@ -39,13 +39,15 @@ from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, ha
 app = Flask(__name__)
 
 # Logging set to stdout
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
+root = logging.getLogger()
+root.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
-logger.addHandler(handler)
+root.addHandler(handler)
+logger = logging.getLogger(__name__)
+
 
 
 @app.route('/status')
@@ -157,7 +159,7 @@ def handle_mr(mr_json: dict) -> str:
     if mr_attributes['state'] == 'merged' and is_multi_main:
         logger.info("Notifying a Merge to superiors main branches")
         send_debug_message("Notifying a Merge to superiors main branches")
-        notify_unmerged_superior_mrs(mr_json)
+        notify_unmerged_superior_mrs(mr_json, project_name)
     if mr_attributes['state'] in ('merged', 'closed'):
         logger.info("Ignoring because of close status")
         send_debug_message("Ignoring because of close status")
