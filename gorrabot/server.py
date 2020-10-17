@@ -74,6 +74,10 @@ def homepage():
     username = get_username(mr_json)
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
 
+    branch_regex = regex_dict[mr_json['repository']['name']]
+    if not re.match(branch_regex, mr_attributes['source_branch']):
+        comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
+
     is_multi_main = is_multi_main_mr(mr_json)
 
     check_issue_reference_in_description(mr_json)
@@ -82,9 +86,6 @@ def homepage():
     sync_related_issue(mr_json)
     fill_fields_based_on_issue(mr_json)
 
-    branch_regex = regex_dict[mr_json['repository']['name']]
-    if not re.match(branch_regex, mr_attributes['source_branch']):
-        comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
 
     if mr_attributes['work_in_progress']:
         return 'Ignoring WIP/Draft MR'
@@ -126,8 +127,17 @@ def handle_push(push: dict):
             text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
         )
         return flask.abort(400, "project not in the configuration")
-    if 'multi-branch' in config[project_name]:
-        return handle_multi_main_push(push, prefix)
+
+    branch_regex = regex_dict[project_name]
+    branch_name = push['ref'][len(prefix):]
+
+    if not re.match(branch_regex, branch_name):
+        if not re.match(r"^((dev|master)|(.*/(dev|master)))$", branch_name):
+            send_message_to_error_channel(f"Unexpected push to {project_name}, branch {branch_name} do not follow "
+                                          "expected regex format")
+    else:
+        if 'multi-branch' in config[project_name]:
+            return handle_multi_main_push(push, prefix)
 
     return 'OK'
 
