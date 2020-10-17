@@ -49,7 +49,6 @@ root.addHandler(handler)
 logger = logging.getLogger(__name__)
 
 
-
 @app.route('/status')
 def status():
     return "OK"
@@ -172,8 +171,12 @@ def handle_mr(mr_json: dict) -> str:
 
 
 def check_status(mr_json: dict, project_name: str) -> NoReturn:
-    if has_label(mr_json, GitlabLabels.NO_CHANGELOG) or \
-            ('flags' in config[project_name] and "NO_CHANGELOG" in config[project_name]['flags'].upper()):
+    if (
+            has_label(mr_json, GitlabLabels.NO_CHANGELOG) or
+            ('flags' in config[project_name] and
+             "NO_CHANGELOG" in [flag.upper() for flag in config[project_name]['flags']]
+             )
+    ):
         logger.info('Ignoring MR Changelog')
         send_debug_message('Ignoring MR Changelog')
         return
