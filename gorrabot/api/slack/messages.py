@@ -1,3 +1,5 @@
+import os
+
 from gorrabot.api.slack import slack_session, SLACK_API_PREFIX
 
 
@@ -30,3 +32,8 @@ def send_message_to_channel(slack_channel: str, text: str):
 
 def send_message_to_error_channel(text: str):
     send_message_to_channel("#***REMOVED***-notification", text)
+
+
+def send_debug_message(text: str):
+    if 'DEBUG' in os.environ:
+        send_message_to_channel("***REMOVED***", text)  # ***REMOVED*** ID

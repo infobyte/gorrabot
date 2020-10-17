@@ -17,7 +17,7 @@ from gorrabot.api.gitlab.merge_requests import (
     comment_mr
 )
 from gorrabot.api.gitlab.usernames import get_username
-from gorrabot.api.slack.messages import send_message_to_error_channel
+from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
 from gorrabot.config import config
 from gorrabot.constants import (
     NO_MD_CHANGELOG,
@@ -52,22 +52,27 @@ def homepage():
 
     if json.get('object_kind') == 'push':
         logger.info("Handling a PUSH event")
+        send_debug_message("Handling a PUSH event")
         return handle_push(json)
 
     if json['user']['username'] == GITLAB_SELF_USERNAME:
         # To prevent infinite loops and race conditions, ignore events related
         # to actions that this bot did
         logger.info('Ignoring webhook from myself')
+        send_debug_message('Ignoring webhook from myself')
         return 'Ignoring webhook from myself'
 
     if json.get('object_kind') != 'merge_request':
         logger.info('I only process merge requests right now!')
+        send_debug_message('I only process merge requests right now!')
         return 'I only process merge requests right now!'
 
     logger.info("Handling a MR event")
+    send_debug_message("Handling a MR event")
 
     if has_label(json, GitlabLabels.SACATE_LA_GORRA):
         logger.warning('Ignoring because of label flag')
+        send_debug_message('Ignoring because of label flag')
         return 'Ignoring all!'
 
     mr_json = json
@@ -76,6 +81,7 @@ def homepage():
     project_name = mr_json["repository"]["name"]
     if project_name not in config:
         logger.warning('Project not in the configuration')
+        send_debug_message('Project not in the configuration')
         send_message_to_error_channel(
             text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
         )
@@ -86,6 +92,7 @@ def homepage():
     branch_regex = regex_dict[mr_json['repository']['name']]
     if not re.match(branch_regex, mr_attributes['source_branch']):
         logger.info("Branch do not match regex")
+        send_debug_message("Branch do not match regex")
         comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
 
     is_multi_main = is_multi_main_mr(mr_json)
@@ -98,12 +105,15 @@ def homepage():
 
     if mr_attributes['work_in_progress']:
         logger.info("Ignoring because of WIP status")
+        send_debug_message("Ignoring because of WIP status")
         return 'Ignoring WIP/Draft MR'
     if mr_attributes['state'] == 'merged' and is_multi_main:
         logger.info("Notifying a Merge to superiors main branches")
+        send_debug_message("Notifying a Merge to superiors main branches")
         notify_unmerged_superior_mrs(mr_json)
     if mr_attributes['state'] in ('merged', 'closed'):
         logger.info("Ignoring because of close status")
+        send_debug_message("Ignoring because of close status")
         return 'Ignoring closed MR'
 
     if has_label(mr_json, GitlabLabels.NO_CHANGELOG):
@@ -146,10 +156,12 @@ def handle_push(push: dict):
     if not re.match(branch_regex, branch_name):
         if not re.match(r"^((dev|master)|(.*/(dev|master)))$", branch_name):
             logger.warning("Branch does not match with regex")
+            send_debug_message("Branch does not match with regex")
             send_message_to_error_channel(f"Unexpected push to `{project_name}`, branch `{branch_name}` do not follow "
                                           "expected regex format")
         else:
             logger.info("dev or master branch")
+            send_debug_message("dev or master branch")
     else:
         if 'multi-branch' in config[project_name]:
             return handle_multi_main_push(push, prefix)
