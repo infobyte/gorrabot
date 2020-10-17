@@ -39,13 +39,13 @@ from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, ha
 app = Flask(__name__)
 
 # Logging set to stdout
-root = logging.getLogger()
-root.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
-root.addHandler(handler)
+logger.addHandler(handler)
 
 
 @app.route('/status')
