@@ -1,7 +1,10 @@
 import datetime
+import logging
 
 from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
 from gorrabot.api.utils import parse_api_date
+
+logger = logging.getLogger(__name__)
 
 
 def get_merge_requests(project_id: int, filters=None):
@@ -60,12 +63,11 @@ def set_wip(project_id: int, iid: int):
     res.raise_for_status()
     mr = res.json()
 
-    assert not mr['work_in_progress']
-    assert not mr['title'].startswith('WIP:')
-    assert not mr['title'].startswith('Draft:')
-
-    data = {"title": "Draft: " + mr['title']}
-    return update_mr(project_id, iid, data)
+    if not mr['work_in_progress'] and not mr['title'].startswith('WIP:') and not mr['title'].startswith('Draft:'):
+        data = {"title": "Draft: " + mr['title']}
+        update_mr(project_id, iid, data)
+    else:
+        logger.info("Is currently in WIP/Draft")
 
 
 def update_mr(project_id: int, iid: int, data: dict):
