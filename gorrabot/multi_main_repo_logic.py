@@ -18,8 +18,7 @@ from gorrabot.constants import MSG_NEW_MR_CREATED, MSG_CHECK_SUPERIOR_MR, regex_
 from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
 
 
-logger = getLogger(__name__)
-logger.setLevel(INFO)
+logger = getLogger()
 
 
 def get_previous_or_next(project_name: str, branch_name: str, previous: bool) -> List[str]:

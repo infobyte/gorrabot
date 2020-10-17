@@ -1,6 +1,8 @@
-from logging import getLogger, INFO
+import os
 from typing import NoReturn
+import logging
 import re
+import sys
 
 import flask
 from flask import Flask, request, abort
@@ -35,8 +37,15 @@ from gorrabot.multi_main_repo_logic import (
 from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
 
 app = Flask(__name__)
-logger = getLogger(__name__)
-logger.setLevel(INFO)
+
+# Logging set to stdout
+root = logging.getLogger()
+root.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
 
 
 @app.route('/status')
