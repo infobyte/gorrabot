@@ -22,7 +22,7 @@ def get_previous_or_next(project_name: str, branch_name: str, previous: bool) ->
     (e.g. tkt_***REMOVED***_XXXX_extra; not tkt_***REMOVED***_XXXX_extra)
     """
     parent_branches: List[str] = config[project_name]['multi-branch']
-    main_branch = re.match(regex_dict[project_name], branch_name).groups()[0]
+    main_branch = re.match(regex_dict[project_name], branch_name).group('base')
     if previous:
         others_parent_main_branches = parent_branches[:parent_branches.index(main_branch)]
     else:
@@ -108,7 +108,7 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
 
 
 def create_similar_mr(parent_mr: dict, project_name: str, branch_name: str) -> dict:
-    main_branch = re.match(regex_dict[project_name], branch_name).groups()[0]
+    main_branch = re.match(regex_dict[project_name], branch_name).group('base')
     target_branch = f"{main_branch}/dev"
     new_title = (
         f"{parent_mr['title']} ({main_branch} edition)"

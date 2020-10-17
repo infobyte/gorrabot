@@ -22,7 +22,7 @@ def get_related_issue_iid(mr: dict):
     project_name = get_project_name(project_id)
     branch_regex = regex_dict[project_name]
     try:
-        iid = re.findall(branch_regex, branch)[0]
+        iid = re.match(branch_regex, branch).group('iid')
     except IndexError:
         return
     try:
