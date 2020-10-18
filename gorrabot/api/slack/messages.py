@@ -24,7 +24,8 @@ def send_message_to_user(slack_user: str, text: str, slack_users_data: dict):
 def send_message_to_channel(slack_channel: str, text: str):
     params = {
         "channel": slack_channel,
-        "text": text
+        "text": text,
+        "link_names": True
     }
     res = slack_session.post(f"{SLACK_API_PREFIX}/chat.postMessage", params=params)
     return res
