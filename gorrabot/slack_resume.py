@@ -15,7 +15,7 @@ from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, ge
 
 DRY_RUN = os.environ.get("DRY_RUN", None)
 
-REPORT_USERS = ["***REMOVED***", "***REMOVED***"]
+REPORT_USERS = ["***REMOVED***"]
 
 project_ids = [int(i) for i in sys.argv[1].split(',')]
 
@@ -125,7 +125,7 @@ def main():
 if __name__ == '__main__':
     day_number = datetime.datetime.today().weekday()
 
-    if day_number < 5:
+    if day_number < 5 or DRY_RUN is not None:
         main()
     else:
         print("It's weekend, so I watch series, I'm not going to talk in slack")

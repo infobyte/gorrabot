@@ -5,7 +5,7 @@ from gorrabot.config import config
 
 OLD_MEMBERS = [
     '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***',
-    '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***']
+    '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***']
 
 MSG_MISSING_CHANGELOG = (
     'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
