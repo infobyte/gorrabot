@@ -56,7 +56,7 @@ def fill_fields_based_on_issue(mr_json: dict):
     assignee.
 
     If the MR doesn't have a milestone, set it to the issue's
-    milestone.
+    milestone. Also update it.
     """
     mr = mr_json["object_attributes"] if "object_attributes" in mr_json else mr_json
     issue_iid = get_related_issue_iid(mr_json)
@@ -81,7 +81,7 @@ def fill_fields_based_on_issue(mr_json: dict):
     else:
         assignee_id = mr['assignee'] and mr['assignee']['id']  # TODO CONTROL
 
-    if milestone_id is None and issue.get('milestone'):
+    if issue.get('milestone'):
         data['milestone_id'] = issue['milestone']['id']
     if assignee_id is None and len(issue.get('assignees', [])) == 1:
         data['assignee_id'] = issue['assignees'][0]['id']  # TODO CHANGE
