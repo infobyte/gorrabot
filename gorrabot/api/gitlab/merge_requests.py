@@ -2,6 +2,7 @@ import datetime
 import logging
 
 from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
+from gorrabot.api.gitlab.utils import paginated_get
 from gorrabot.api.utils import parse_api_date
 
 logger = logging.getLogger(__name__)
@@ -11,10 +12,7 @@ def get_merge_requests(project_id: int, filters=None):
     if filters is None:
         filters = {}
     url = f'{GITLAB_API_PREFIX}/projects/{project_id}/merge_requests'
-    res = gitlab_session.get(url, params=filters)
-    res.raise_for_status()
-    # TODO PAGINATION
-    return res.json()
+    return paginated_get(url, filters)
 
 
 def mr_url(project_id, iid):
@@ -80,9 +78,7 @@ def update_mr(project_id: int, iid: int, data: dict):
 def get_related_merge_requests(project_id: int, issue_iid: int):
     url = '{}/projects/{}/issues/{}/related_merge_requests'.format(
             GITLAB_API_PREFIX, project_id, issue_iid)
-    res = gitlab_session.get(url)
-    res.raise_for_status()
-    return res.json()
+    return paginated_get(url)
 
 
 def comment_mr(project_id: int, iid: int, body: str, can_be_duplicated=True, min_time_between_comments=None):
