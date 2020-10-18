@@ -216,7 +216,7 @@ def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
         logger.info("Weight found")
         messages.append(MSG_WITHOUT_WEIGHT)
     if len(messages) > 0:
-        error_message_list = '\n    * '.join(messages)
+        error_message_list = '\n    * '.join([''] + messages)
         username = push["user_username"]
         if username in gitlab_to_slack_user_dict:
             error_message = MSG_NOTIFICATION_PREFIX_WITH_USER.format(
