@@ -1,5 +1,5 @@
 import os
-from typing import NoReturn
+from typing import NoReturn, List
 import logging
 import re
 import sys
@@ -7,6 +7,7 @@ import sys
 import flask
 from flask import Flask, request, abort
 
+from gorrabot.api.constants import gitlab_to_slack_user_dict
 from gorrabot.api.gitlab import (
     GITLAB_REQUEST_TOKEN,
     GITLAB_SELF_USERNAME,
@@ -27,7 +28,8 @@ from gorrabot.constants import (
     MSG_BAD_BRANCH_NAME,
     MSG_MISSING_CHANGELOG,
     MSG_TKT_MR,
-    regex_dict
+    regex_dict, MSG_WITHOUT_PRIORITY, MSG_WITHOUT_SEVERITY, MSG_WITHOUT_WEIGHT, MSG_NOTIFICATION_PREFIX_WITH_USER,
+    MSG_NOTIFICATION_PREFIX_WITHOUT_USER
 )
 from gorrabot.multi_main_repo_logic import (
     handle_multi_main_push,
@@ -114,6 +116,7 @@ def handle_push(push: dict) -> str:
     else:
         if 'multi-branch' in config[project_name]:
             return handle_multi_main_push(push, prefix)
+        check_labels_and_weight(push, branch_name)
 
     return 'OK'
 
@@ -192,6 +195,35 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         comment_mr(project_id, iid, f"@{username}: {msg}")
         set_wip(project_id, iid)
         mr_attributes['work_in_progress'] = True
+
+
+def check_labels_and_weight(push: dict, branch_name):
+    project_name = push["repository"]["name"]
+    branch_regex = regex_dict[project_name]
+    issue_iid = re.match(branch_regex, branch_name).group("iid")
+    project_id = push['project_id']
+    issue = get_issue(project_id, issue_iid)
+    messages = []
+    labels: List[str] = issue['labels']
+    if any([label.startswith("priority::") for label in labels]):
+        messages.append(MSG_WITHOUT_PRIORITY)
+    if any([label.startswith("severity::") for label in labels]):
+        messages.append(MSG_WITHOUT_SEVERITY)
+    weight = issue['weight']
+    if weight is None:
+        messages.append(MSG_WITHOUT_WEIGHT)
+    if len(messages) > 0:
+        error_message_list = '\n    * '.join(messages)
+        username = push["user_username"]
+        if username in gitlab_to_slack_user_dict:
+            error_message = MSG_NOTIFICATION_PREFIX_WITH_USER.format(
+                user=gitlab_to_slack_user_dict[username],
+                branch=branch_name)
+        else:
+            error_message = MSG_NOTIFICATION_PREFIX_WITHOUT_USER.format(user=username, branch=branch_name)
+
+        error_message = f"{error_message}{error_message_list}"
+        send_message_to_error_channel(error_message)
 
 
 # @ehorvat: I believe this should be in a utils as it depends on gitlab

@@ -68,6 +68,11 @@ MSG_MR_OLD_MEMBER = (
     'que ya no forma parte del equipo. Habría que cerrarlo o reasignárselo a '
     'alguien más'
 )
+MSG_WITHOUT_PRIORITY = "No tiene `priority`"
+MSG_WITHOUT_SEVERITY = "No tiene `severity`"
+MSG_WITHOUT_WEIGHT = "No tiene peso!"
+MSG_NOTIFICATION_PREFIX_WITH_USER = "@{user} commiteo a la rama {branch}, pero esa rama:"
+MSG_NOTIFICATION_PREFIX_WITHOUT_USER = "{user} (No lo encontre en mi DB) commiteo a la rama {branch}, pero esa rama:"
 
 # Define inactivity as a merge request whose last commit is older than
 # now() - inactivity_time
