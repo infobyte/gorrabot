@@ -205,10 +205,10 @@ def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
     issue = get_issue(project_id, issue_iid)
     messages = []
     labels: List[str] = issue['labels']
-    if any([label.startswith("priority::") for label in labels]):
+    if all([not label.startswith("priority::") for label in labels]):
         logger.info("No priority label found")
         messages.append(MSG_WITHOUT_PRIORITY)
-    if any([label.startswith("severity::") for label in labels]):
+    if all([not label.startswith("severity::") for label in labels]):
         logger.info("No severity label found")
         messages.append(MSG_WITHOUT_SEVERITY)
     weight = issue['weight']
