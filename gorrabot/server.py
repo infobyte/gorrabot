@@ -197,7 +197,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         mr_attributes['work_in_progress'] = True
 
 
-def check_labels_and_weight(push: dict, branch_name):
+def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
     project_name = push["repository"]["name"]
     branch_regex = regex_dict[project_name]
     issue_iid = re.match(branch_regex, branch_name).group("iid")
@@ -206,11 +206,14 @@ def check_labels_and_weight(push: dict, branch_name):
     messages = []
     labels: List[str] = issue['labels']
     if any([label.startswith("priority::") for label in labels]):
+        logger.info("No priority label found")
         messages.append(MSG_WITHOUT_PRIORITY)
     if any([label.startswith("severity::") for label in labels]):
+        logger.info("No severity label found")
         messages.append(MSG_WITHOUT_SEVERITY)
     weight = issue['weight']
     if weight is None:
+        logger.info("Weight found")
         messages.append(MSG_WITHOUT_WEIGHT)
     if len(messages) > 0:
         error_message_list = '\n    * '.join(messages)
