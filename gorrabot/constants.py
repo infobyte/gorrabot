@@ -23,9 +23,9 @@ MSG_TKT_MR = (
     'título más descriptivo para este merge request.'
 )
 MSG_BAD_BRANCH_NAME = (
-    'Los nombres de branch deben tener el formato tkt_***REMOVED***_1234_short_desc. '
+    'Los nombres de branch deben tener el formato tkt_XXX_1234_short_desc. '
     'Es decir, tienen que tener la versión para la que se quieren mergear '
-    '(***REMOVED***, ***REMOVED*** o ***REMOVED***), el número de ticket y una descripción corta.'
+    '{main_branches}, el número de ticket y una descripción corta.'
     '\n\n'
     'En caso de que sea un ticket de soporte usar el prefijo sup en vez de '
     'tkt. Si se trata de un branch experimental que no va a ser mergeado a '
@@ -36,14 +36,14 @@ MSG_BAD_BRANCH_NAME = (
 MSG_NEW_MR_CREATED = (
     'Vi que pusheaste a este branch pero no había ningún merge request '
     'creado. Me tomé la molestia de crearlo por vos, usando la información '
-    'de un merge request de ***REMOVED***. Si tenés que hacer más cambios (es decir, '
+    'de un merge request de {base_branch}. Si tenés que hacer más cambios (es decir, '
     'no se trata de un simple merge), poné el MR en WIP/Draft para aclarar que'
     ' todavía no está terminado.'
 )
 MSG_CHECK_SUPERIOR_MR = (
     'Noté que mergeaste el branch que implementa esto para una versión '
-    'anterior (***REMOVED*** o ***REMOVED***). Hay que mergear este MR también para evitar que '
-    'haya conflictos entre ***REMOVED***/dev, ***REMOVED***/dev y ***REMOVED***/dev.'
+    'anterior {prev_main_branches}. Hay que mergear este MR también para evitar que '
+    'haya conflictos entre {main_branches}.'
 )
 MSG_STALE_MR = """
 Noté que este merge request está en WIP/Draft y sin actividad hace bastante 

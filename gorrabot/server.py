@@ -145,7 +145,8 @@ def handle_mr(mr_json: dict) -> str:
     if not re.match(branch_regex, mr_attributes['source_branch']):
         logger.info("Branch do not match regex")
         send_debug_message("Branch do not match regex")
-        comment_mr(project_id, iid, f"@{username}: {MSG_BAD_BRANCH_NAME}", can_be_duplicated=False)
+        msg_bad_branch_name = MSG_BAD_BRANCH_NAME.format(main_branches=config[project_name]['multi-branch'])
+        comment_mr(project_id, iid, f"@{username}: {msg_bad_branch_name}", can_be_duplicated=False)
 
     is_multi_main = is_multi_main_mr(mr_json)
 
