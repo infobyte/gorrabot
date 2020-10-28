@@ -180,6 +180,7 @@ having a continuous ***REMOVED*** seems to be a better choice.
 * [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
 * [***REMOVED***][gorrabot] Gitlab ID: ***REMOVED***
 * [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
+* [***REMOVED***][***REMOVED***] Gitlab ID: ***REMOVED***
 
 ### Gorrabot repo bot
 * [***REMOVED***][***REMOVED***] 
@@ -189,6 +190,8 @@ having a continuous ***REMOVED*** seems to be a better choice.
 * [***REMOVED***][gorrabot]
 * [***REMOVED***][***REMOVED***]
 * [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***] 
 
 ### Comment staled messages:
 * [***REMOVED***][***REMOVED***]
@@ -201,6 +204,7 @@ having a continuous ***REMOVED*** seems to be a better choice.
 * [***REMOVED***][***REMOVED***]
 * [***REMOVED***][***REMOVED***]
 * [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***] 
 
 ### Gorrabot slack messages:
 * [web][web]
@@ -217,6 +221,7 @@ having a continuous ***REMOVED*** seems to be a better choice.
 * [***REMOVED***][gorrabot]
 * [***REMOVED***][***REMOVED***]
 * [***REMOVED***][***REMOVED***]
+* [***REMOVED***][***REMOVED***] 
 
 [***REMOVED***]: ***REMOVED***
 [***REMOVED***]: ***REMOVED***
@@ -233,3 +238,4 @@ having a continuous ***REMOVED*** seems to be a better choice.
 [***REMOVED***]: ***REMOVED***
 [***REMOVED***]: ***REMOVED***-linux-installers-builder
 [***REMOVED***]: ***REMOVED***-***REMOVED***
+[***REMOVED***]: ***REMOVED***-report-tester

@@ -22,7 +22,10 @@ gitlab_to_slack_user_dict = {
     "***REMOVED***": "***REMOVED***",
     "***REMOVED***": "***REMOVED***",
     "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***"
+    "***REMOVED***": "***REMOVED***",
+    "***REMOVED***": "***REMOVED***",
+    "***REMOVED***": "***REMOVED***",
+    "***REMOVED***": "***REMOVED***",
 }
 
 slack_to_gitlab_user_dict = {value: key for key, value in gitlab_to_slack_user_dict.items()}
