@@ -207,7 +207,7 @@ def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
     messages = []
     labels: List[str] = issue['labels']
     if (
-            all([not label.startswith("priority::") for label in labels]) and
+            all([not label.startswith("priority::") for label in labels]) and not
             (
                 'flags' in config[project_name] and
                 "NO_PRIORITY" in [flag.upper() for flag in config[project_name]['flags']]
@@ -216,7 +216,7 @@ def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
         logger.info("No priority label found")
         messages.append(MSG_WITHOUT_PRIORITY)
     if (
-            all([not label.startswith("severity::") for label in labels]) and
+            all([not label.startswith("severity::") for label in labels]) and not
             (
                 'flags' in config[project_name] and
                 "NO_SEVERITY" in [flag.upper() for flag in config[project_name]['flags']]
