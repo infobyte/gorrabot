@@ -105,7 +105,8 @@ def handle_push(push: dict) -> str:
     branch_name = push['ref'][len(prefix):]
 
     if not re.match(branch_regex, branch_name):
-        if not re.match(r"^((dev|master)|(.*/(dev|master)))$", branch_name) and branch_name != "***REMOVED***/***REMOVED***_alpha":
+        if not re.match(r"^((dev|master)|(.*/(dev|master)))$", branch_name) \
+                and branch_name not in ["***REMOVED***/***REMOVED***_alpha", "***REMOVED***"]:
             logger.warning("Branch does not match with regex")
             send_debug_message("Branch does not match with regex")
             send_message_to_error_channel(f"Unexpected push to `{project_name}`, branch `{branch_name}` do not follow "
