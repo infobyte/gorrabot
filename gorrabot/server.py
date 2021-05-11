@@ -216,6 +216,9 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     if weight is None:
         logger.info("Weight found")
         messages.append(MSG_WITHOUT_WEIGHT)
+    milestone = issue['milestone']
+    if milestone is None:
+        logger.info("Milestone not found")
     if len(messages) > 0:
         error_message_list = '\n    * '.join([''] + messages)
         username = push["user_username"]
