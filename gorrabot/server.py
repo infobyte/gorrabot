@@ -115,7 +115,7 @@ def handle_push(push: dict) -> str:
             logger.info("dev or master branch")
             send_debug_message("dev or master branch")
     else:
-        check_labels_and_weight(push, branch_name)
+        check_labels_weight_and_milestone(push, branch_name)
         if 'multi-branch' in config[project_name]:
             return handle_multi_main_push(push, prefix)
 
