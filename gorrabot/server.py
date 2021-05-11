@@ -29,7 +29,8 @@ from gorrabot.constants import (
     MSG_MISSING_CHANGELOG,
     MSG_TKT_MR,
     regex_dict, MSG_WITHOUT_PRIORITY, MSG_WITHOUT_SEVERITY, MSG_WITHOUT_WEIGHT, MSG_NOTIFICATION_PREFIX_WITH_USER,
-    MSG_NOTIFICATION_PREFIX_WITHOUT_USER
+    MSG_NOTIFICATION_PREFIX_WITHOUT_USER,
+    MSG_WITHOUT_MILESTONE
 )
 from gorrabot.multi_main_repo_logic import (
     handle_multi_main_push,
@@ -219,6 +220,7 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     milestone = issue['milestone']
     if milestone is None:
         logger.info("Milestone not found")
+        messages.append(MSG_WITHOUT_MILESTONE)
     if len(messages) > 0:
         error_message_list = '\n    * '.join([''] + messages)
         username = push["user_username"]
