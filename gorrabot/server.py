@@ -188,8 +188,8 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
     username = get_username(mr_json)
 
-    if not has_changed_changelog(project_id, iid, only_md=True):
-        if has_changed_changelog(project_id, iid, only_md=False):
+    if not has_changed_changelog(project_id, iid, only_md_json=True):
+        if has_changed_changelog(project_id, iid, only_md_json=False):
             msg = NO_MD_CHANGELOG
         else:
             msg = MSG_MISSING_CHANGELOG
@@ -231,13 +231,13 @@ def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
 
 
 # @ehorvat: I believe this should be in a utils as it depends on gitlab
-def has_changed_changelog(project_id: int, iid: int, only_md: bool):
+def has_changed_changelog(project_id: int, iid: int, only_md_json: bool):
     changes = get_mr_changes(project_id, iid)
     changed_files = get_changed_files(changes)
     for filename in changed_files:
         if filename.startswith('CHANGELOG'):
             valid_extension = filename.endswith('.md') or filename.endswith('.json')
-            if not only_md or valid_extension:
+            if not only_md_json or valid_extension:
                 return True
     return False
 
