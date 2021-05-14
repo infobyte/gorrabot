@@ -236,7 +236,8 @@ def has_changed_changelog(project_id: int, iid: int, only_md: bool):
     changed_files = get_changed_files(changes)
     for filename in changed_files:
         if filename.startswith('CHANGELOG'):
-            if not only_md or filename.endswith('.md'):
+            valid_extension = filename.endswith('.md') or filename.endswith('.json')
+            if not only_md or valid_extension:
                 return True
     return False
 
