@@ -223,7 +223,7 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
         logger.info("Milestone not found")
         messages.append(MSG_WITHOUT_MILESTONE)
     else:
-        if milestone['title'] == BACKLOG_MILESTONE:
+        if milestone['title'] in BACKLOG_MILESTONE:
             logger.info("Backlog detected as milestone")
             messages.append(MSG_BACKLOG_MILESTONE)
 
