@@ -5,7 +5,7 @@ import re
 import sys
 
 import flask
-from flask import Flask, request, abort
+from flask import Flask, request, abort, make_response
 
 from gorrabot.api.constants import gitlab_to_slack_user_dict
 from gorrabot.api.gitlab import (
@@ -69,12 +69,17 @@ def homepage():
         send_debug_message("Handling a PUSH event")
         return handle_push(json)
 
-    if json['user']['username'] == GITLAB_SELF_USERNAME:
-        # To prevent infinite loops and race conditions, ignore events related
-        # to actions that this bot did
-        logger.info('Ignoring webhook from myself')
-        send_debug_message('Ignoring webhook from myself')
-        return 'Ignoring webhook from myself'
+    try:
+        if json['user']['username'] == GITLAB_SELF_USERNAME:
+            # To prevent infinite loops and race conditions, ignore events related
+            # to actions that this bot did
+            logger.info('Ignoring webhook from myself')
+            send_debug_message('Ignoring webhook from myself')
+            return 'Ignoring webhook from myself'
+    except KeyError as e:
+        message = f"{e} parameter expected but not found"
+        logger.info(message)
+        abort(make_response({"message": message}, 400))
 
     if json.get('object_kind') != 'merge_request':
         logger.info('I only process merge requests right now!')
