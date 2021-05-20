@@ -24,7 +24,7 @@ from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
 from gorrabot.config import config
 from gorrabot.constants import (
-    NO_MD_CHANGELOG,
+    NO_VALID_CHANGELOG_FILETYPE,
     MSG_BAD_BRANCH_NAME,
     MSG_MISSING_CHANGELOG,
     MSG_TKT_MR,
@@ -193,9 +193,12 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
     username = get_username(mr_json)
 
-    if not has_changed_changelog(project_id, iid, only_md=True):
-        if has_changed_changelog(project_id, iid, only_md=False):
-            msg = NO_MD_CHANGELOG
+    changelog_filetype = config[project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
+                                                                    else '.md'
+
+    if not has_changed_changelog(project_id, iid, project_name, only_md=True):
+        if has_changed_changelog(project_id, iid, project_name, only_md=False):
+            msg = NO_VALID_CHANGELOG_FILETYPE.format(changelog_filetype=changelog_filetype)
         else:
             msg = MSG_MISSING_CHANGELOG
         comment_mr(project_id, iid, f"@{username}: {msg}")
@@ -236,13 +239,21 @@ def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
 
 
 # @ehorvat: I believe this should be in a utils as it depends on gitlab
-def has_changed_changelog(project_id: int, iid: int, only_md: bool):
+def has_changed_changelog(project_id: int, iid: int, project_name, only_md: bool):
     changes = get_mr_changes(project_id, iid)
     changed_files = get_changed_files(changes)
     for filename in changed_files:
         if filename.startswith('CHANGELOG'):
-            if not only_md or filename.endswith('.md'):
+            valid_ext = config[project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
+                                                                   else '.md'
+            if not only_md or filename.endswith(valid_ext):
                 return True
+            else:
+                if 'changelog_exceptions' in config[project_name]:
+                    _, file_name = os.path.split(filename)
+                    if file_name in config[project_name]['changelog_exceptions']:
+                        return True
+
     return False
 
 
