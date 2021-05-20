@@ -188,9 +188,12 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
     username = get_username(mr_json)
 
+    changelog_filetype = config[project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
+                                                                    else '.md'
+
     if not has_changed_changelog(project_id, iid, project_name, only_md=True):
         if has_changed_changelog(project_id, iid, project_name, only_md=False):
-            msg = NO_VALID_CHANGELOG_FILETYPE
+            msg = NO_VALID_CHANGELOG_FILETYPE.format(changelog_filetype=changelog_filetype)
         else:
             msg = MSG_MISSING_CHANGELOG
         comment_mr(project_id, iid, f"@{username}: {msg}")
