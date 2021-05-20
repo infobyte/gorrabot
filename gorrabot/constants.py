@@ -13,7 +13,7 @@ MSG_MISSING_CHANGELOG = (
 )
 NO_VALID_CHANGELOG_FILETYPE = (
     'El fichero que se creó en el directorio `CHANGELOG` no tiene extensión '
-    '`.md` o `.json` por lo que no va a ser tomado en cuenta por el sistema de '
+    '`{changelog_filetype}` por lo que no va a ser tomado en cuenta por el sistema de '
     'generación de changelogs. Hay que arreglar esto para que se pueda '
     'mergear el MR.'
 )
