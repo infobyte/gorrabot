@@ -29,7 +29,9 @@ from gorrabot.constants import (
     MSG_MISSING_CHANGELOG,
     MSG_TKT_MR,
     regex_dict, MSG_WITHOUT_PRIORITY, MSG_WITHOUT_SEVERITY, MSG_WITHOUT_WEIGHT, MSG_NOTIFICATION_PREFIX_WITH_USER,
-    MSG_NOTIFICATION_PREFIX_WITHOUT_USER
+    MSG_NOTIFICATION_PREFIX_WITHOUT_USER,
+    MSG_WITHOUT_MILESTONE,
+    BACKLOG_MILESTONE, MSG_BACKLOG_MILESTONE
 )
 from gorrabot.multi_main_repo_logic import (
     handle_multi_main_push,
@@ -119,7 +121,7 @@ def handle_push(push: dict) -> str:
             logger.info("dev or master branch")
             send_debug_message("dev or master branch")
     else:
-        check_labels_and_weight(push, branch_name)
+        check_labels_weight_and_milestone(push, branch_name)
         if 'multi-branch' in config[project_name]:
             return handle_multi_main_push(push, prefix)
 
@@ -206,7 +208,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         mr_attributes['work_in_progress'] = True
 
 
-def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
+def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     project_name = push["repository"]["name"]
     branch_regex = regex_dict[project_name]
     issue_iid = re.match(branch_regex, branch_name).group("iid")
@@ -224,6 +226,15 @@ def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
     if weight is None:
         logger.info("Weight found")
         messages.append(MSG_WITHOUT_WEIGHT)
+    milestone = issue['milestone']
+    if milestone is None:
+        logger.info("Milestone not found")
+        messages.append(MSG_WITHOUT_MILESTONE)
+    else:
+        if milestone['title'] in BACKLOG_MILESTONE:
+            logger.info("Backlog detected as milestone")
+            messages.append(MSG_BACKLOG_MILESTONE)
+
     if len(messages) > 0:
         error_message_list = '\n    * '.join([''] + messages)
         username = push["user_username"]
