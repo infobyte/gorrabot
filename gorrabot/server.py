@@ -24,7 +24,7 @@ from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
 from gorrabot.config import config
 from gorrabot.constants import (
-    NO_MD_CHANGELOG,
+    NO_VALID_CHANGELOG_FILETYPE,
     MSG_BAD_BRANCH_NAME,
     MSG_MISSING_CHANGELOG,
     MSG_TKT_MR,
@@ -190,7 +190,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
 
     if not has_changed_changelog(project_id, iid, project_name, only_md=True):
         if has_changed_changelog(project_id, iid, project_name, only_md=False):
-            msg = NO_MD_CHANGELOG
+            msg = NO_VALID_CHANGELOG_FILETYPE
         else:
             msg = MSG_MISSING_CHANGELOG
         comment_mr(project_id, iid, f"@{username}: {msg}")
