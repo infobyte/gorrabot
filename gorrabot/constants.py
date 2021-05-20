@@ -11,7 +11,7 @@ MSG_MISSING_CHANGELOG = (
     'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
     'debes'
 )
-NO_MD_CHANGELOG = (
+NO_VALID_CHANGELOG_FILETYPE = (
     'El fichero que se creó en el directorio `CHANGELOG` no tiene extensión '
     '`.md` o `.json` por lo que no va a ser tomado en cuenta por el sistema de '
     'generación de changelogs. Hay que arreglar esto para que se pueda '
