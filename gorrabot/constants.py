@@ -3,6 +3,8 @@ from collections import defaultdict
 
 from gorrabot.config import config
 
+BACKLOG_MILESTONE = ["Backlog", "Reviewed Backlog"]
+
 OLD_MEMBERS = [
     '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***',
     '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***']
@@ -11,9 +13,9 @@ MSG_MISSING_CHANGELOG = (
     'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
     'debes'
 )
-NO_MD_CHANGELOG = (
+NO_VALID_CHANGELOG_FILETYPE = (
     'El fichero que se creó en el directorio `CHANGELOG` no tiene extensión '
-    '`.md` por lo que no va a ser tomado en cuenta por el sistema de '
+    '`{changelog_filetype}` por lo que no va a ser tomado en cuenta por el sistema de '
     'generación de changelogs. Hay que arreglar esto para que se pueda '
     'mergear el MR.'
 )
@@ -71,8 +73,10 @@ MSG_MR_OLD_MEMBER = (
 MSG_WITHOUT_PRIORITY = "No tiene `priority`"
 MSG_WITHOUT_SEVERITY = "No tiene `severity`"
 MSG_WITHOUT_WEIGHT = "No tiene peso!"
+MSG_WITHOUT_MILESTONE = "No tiene milestone!"
 MSG_NOTIFICATION_PREFIX_WITH_USER = "@{user} commiteo a la rama {branch}, pero esa rama:"
 MSG_NOTIFICATION_PREFIX_WITHOUT_USER = "{user} (No lo encontre en mi DB) commiteo a la rama {branch}, pero esa rama:"
+MSG_BACKLOG_MILESTONE = "Tiene Backlog como milestone!"
 
 # Define inactivity as a merge request whose last commit is older than
 # now() - inactivity_time

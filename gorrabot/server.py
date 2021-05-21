@@ -5,7 +5,7 @@ import re
 import sys
 
 import flask
-from flask import Flask, request, abort
+from flask import Flask, request, abort, make_response
 
 from gorrabot.api.constants import gitlab_to_slack_user_dict
 from gorrabot.api.gitlab import (
@@ -24,12 +24,14 @@ from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
 from gorrabot.config import config
 from gorrabot.constants import (
-    NO_MD_CHANGELOG,
+    NO_VALID_CHANGELOG_FILETYPE,
     MSG_BAD_BRANCH_NAME,
     MSG_MISSING_CHANGELOG,
     MSG_TKT_MR,
     regex_dict, MSG_WITHOUT_PRIORITY, MSG_WITHOUT_SEVERITY, MSG_WITHOUT_WEIGHT, MSG_NOTIFICATION_PREFIX_WITH_USER,
-    MSG_NOTIFICATION_PREFIX_WITHOUT_USER
+    MSG_NOTIFICATION_PREFIX_WITHOUT_USER,
+    MSG_WITHOUT_MILESTONE,
+    BACKLOG_MILESTONE, MSG_BACKLOG_MILESTONE
 )
 from gorrabot.multi_main_repo_logic import (
     handle_multi_main_push,
@@ -69,12 +71,17 @@ def homepage():
         send_debug_message("Handling a PUSH event")
         return handle_push(json)
 
-    if json['user']['username'] == GITLAB_SELF_USERNAME:
-        # To prevent infinite loops and race conditions, ignore events related
-        # to actions that this bot did
-        logger.info('Ignoring webhook from myself')
-        send_debug_message('Ignoring webhook from myself')
-        return 'Ignoring webhook from myself'
+    try:
+        if json['user']['username'] == GITLAB_SELF_USERNAME:
+            # To prevent infinite loops and race conditions, ignore events related
+            # to actions that this bot did
+            logger.info('Ignoring webhook from myself')
+            send_debug_message('Ignoring webhook from myself')
+            return 'Ignoring webhook from myself'
+    except KeyError as e:
+        message = f"{e} parameter expected but not found"
+        logger.info(message)
+        abort(make_response({"message": message}, 400))
 
     if json.get('object_kind') != 'merge_request':
         logger.info('I only process merge requests right now!')
@@ -115,7 +122,7 @@ def handle_push(push: dict) -> str:
             logger.info("dev or master branch")
             send_debug_message("dev or master branch")
     else:
-        check_labels_and_weight(push, branch_name)
+        check_labels_weight_and_milestone(push, branch_name)
         if 'multi-branch' in config[project_name]:
             return handle_multi_main_push(push, prefix)
 
@@ -189,9 +196,12 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
     username = get_username(mr_json)
 
-    if not has_changed_changelog(project_id, iid, only_md=True):
-        if has_changed_changelog(project_id, iid, only_md=False):
-            msg = NO_MD_CHANGELOG
+    changelog_filetype = config[project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
+                                                                    else '.md'
+
+    if not has_changed_changelog(project_id, iid, project_name, only_md=True):
+        if has_changed_changelog(project_id, iid, project_name, only_md=False):
+            msg = NO_VALID_CHANGELOG_FILETYPE.format(changelog_filetype=changelog_filetype)
         else:
             msg = MSG_MISSING_CHANGELOG
         comment_mr(project_id, iid, f"@{username}: {msg}")
@@ -199,7 +209,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         mr_attributes['work_in_progress'] = True
 
 
-def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
+def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     project_name = push["repository"]["name"]
     branch_regex = regex_dict[project_name]
     issue_iid = re.match(branch_regex, branch_name).group("iid")
@@ -229,6 +239,15 @@ def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
     if weight is None:
         logger.info("Weight found")
         messages.append(MSG_WITHOUT_WEIGHT)
+    milestone = issue['milestone']
+    if milestone is None:
+        logger.info("Milestone not found")
+        messages.append(MSG_WITHOUT_MILESTONE)
+    else:
+        if milestone['title'] in BACKLOG_MILESTONE:
+            logger.info("Backlog detected as milestone")
+            messages.append(MSG_BACKLOG_MILESTONE)
+
     if len(messages) > 0:
         error_message_list = '\n    * '.join([''] + messages)
         username = push["user_username"]
@@ -244,13 +263,21 @@ def check_labels_and_weight(push: dict, branch_name: str) -> NoReturn:
 
 
 # @ehorvat: I believe this should be in a utils as it depends on gitlab
-def has_changed_changelog(project_id: int, iid: int, only_md: bool):
+def has_changed_changelog(project_id: int, iid: int, project_name, only_md: bool):
     changes = get_mr_changes(project_id, iid)
     changed_files = get_changed_files(changes)
     for filename in changed_files:
         if filename.startswith('CHANGELOG'):
-            if not only_md or filename.endswith('.md'):
+            valid_ext = config[project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
+                                                                   else '.md'
+            if not only_md or filename.endswith(valid_ext):
                 return True
+            else:
+                if 'changelog_exceptions' in config[project_name]:
+                    _, file_name = os.path.split(filename)
+                    if file_name in config[project_name]['changelog_exceptions']:
+                        return True
+
     return False
 
 
