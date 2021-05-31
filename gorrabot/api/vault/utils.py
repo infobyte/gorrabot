@@ -16,7 +16,7 @@ def get_secret(secret_name):
     :param secret_name: Name of the secret stored in Vault
     :type secret_name: str
     :return: Secret's content
-    :rtype: str if secrets exists, None otherwise
+    :rtype: str if secrets exists, Exception otherwise
     """
     try:
         if ***REMOVED*** and ***REMOVED***.is_authenticated():
