@@ -1,4 +1,5 @@
 import yaml
+from api.vault import get_secret
 
 
 def read_config() -> dict:
