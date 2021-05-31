@@ -2,11 +2,14 @@ import hvac
 from hvac.exceptions import InvalidRequest
 from . import FARADAY_VAULT_SERVER, ROLE_ID, SECRET_ID
 
+ERROR_MESSAGE = "VaultError: {}"
+
 try:
     ***REMOVED*** = hvac.Client(url=FARADAY_VAULT_SERVER)
     ***REMOVED***.auth.approle.login(role_id=ROLE_ID, secret_id=SECRET_ID)
 except InvalidRequest as e:
-    print(f"Cannot connect to Vault server: {e}")
+    message = f"Cannot connect to Vault server, {e}"
+    print(ERROR_MESSAGE.format(message))
     exit(1)
 
 
@@ -25,6 +28,7 @@ def get_secret(secret_name):
                 path='gorrabot'
             )
             return secret_response['data']['data'][secret_name]
-    except KeyError:
-        print("Secret not found")
+    except KeyError as e:
+        message = f"Secret {e} could not be found"
+        print(ERROR_MESSAGE.format(message))
         exit(1)
