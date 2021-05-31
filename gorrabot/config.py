@@ -1,5 +1,5 @@
 import yaml
-from api.vault import SECRET_NAME, get_secret
+from gorrabot.api.vault import SECRET_NAME, get_secret
 
 secret = get_secret(SECRET_NAME)
 
