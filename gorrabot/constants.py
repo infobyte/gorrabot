@@ -94,5 +94,6 @@ __other_regex = {
     for project_name in config
     if 'regex' in config[project_name]
 }
+# iid must be with this format: "P<iid>\d+"
 regex_dict = defaultdict(lambda: r'^(?:tkt|mig|sup|exp)_(?P<iid>\d+|y2k)[-_].+', __other_regex)
 
