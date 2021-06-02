@@ -12,6 +12,10 @@ def load_yaml(data):
 
 
 def read_config(secret) -> dict:
+    if not secret:
+        print("Invalid secret: Be sure you've set either SECRET_NAME or GORRABOT_CONFIG_FILE")
+        exit(1)
+
     if re.match(GORRABOT_CONFIG_FILE['path_regex'], secret):  # must be an absolute path
         if not secret.endswith('.yaml'):
             print("Invalid GORRABOT_CONFIG_FILE: It must be a .yaml file")
