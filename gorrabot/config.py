@@ -1,7 +1,8 @@
 import yaml
-from gorrabot.api.vault import SECRET_NAME, get_secret
+from gorrabot.api.vault import SECRET_NAME, GORRABOT_CONFIG_FILE, get_secret
 
-secret = get_secret(SECRET_NAME)
+
+secret = get_secret(SECRET_NAME) if SECRET_NAME else GORRABOT_CONFIG_FILE
 
 
 def read_config() -> dict:
