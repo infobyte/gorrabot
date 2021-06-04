@@ -3,6 +3,7 @@ import re
 from functools import lru_cache
 
 from gorrabot.api.vault import SECRET_NAME, GORRABOT_CONFIG_FILE, get_secret
+from gorrabot.timer import GorrabotTimer
 
 
 def load_yaml(data):
