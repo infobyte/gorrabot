@@ -1,6 +1,7 @@
 import yaml
 import re
 from gorrabot.api.vault import SECRET_NAME, GORRABOT_CONFIG_FILE, get_secret
+from functools import lru_cache
 
 
 def load_yaml(data):
@@ -11,6 +12,7 @@ def load_yaml(data):
         exit(1)
 
 
+@lru_cache
 def read_config(secret) -> dict:
     if not secret:
         print("Invalid secret: Be sure you've set either SECRET_NAME or GORRABOT_CONFIG_FILE")
