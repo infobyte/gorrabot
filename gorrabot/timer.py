@@ -2,6 +2,14 @@ from threading import Timer
 
 
 class GorrabotTimer:
+    """Call a function every specified number of seconds:
+
+            gt = GorrabotTimer(f, 1800)
+            gt.start()
+            gt.stop()     # stop the timer's action
+
+    """
+
     def __init__(self, function, interval):
         self._timer = None
         self.function = function

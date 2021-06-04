@@ -37,3 +37,5 @@ def read_config(secret) -> dict:
 
 secret = get_secret(SECRET_NAME) if SECRET_NAME else GORRABOT_CONFIG_FILE['path']
 config = read_config(secret)
+gorrabot_timer = GorrabotTimer(read_config.cache_clear, 5).start()
+
