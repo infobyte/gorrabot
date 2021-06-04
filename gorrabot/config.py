@@ -6,7 +6,7 @@ from gorrabot.api.vault import SECRET_NAME, GORRABOT_CONFIG_FILE, get_secret
 from gorrabot.timer import GorrabotTimer
 
 
-def load_yaml(data):
+def load_yaml(data):  # TODO I DO NOT LIKE THIS HERE
     try:
         return yaml.safe_load(data)
     except yaml.YAMLError as exc:
