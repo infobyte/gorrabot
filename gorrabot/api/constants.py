@@ -1,35 +1,6 @@
 from gorrabot.config import config
 
-gitlab_to_slack_user_dict = {
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***",
-    "***REMOVED***": "***REMOVED***"
-}
+gitlab_to_slack_user_dict = config['gitlab'].get('gitlab_to_slack_user_dict', None)
 
 slack_to_gitlab_user_dict = {value: key for key, value in gitlab_to_slack_user_dict.items()}
 
