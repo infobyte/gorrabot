@@ -12,6 +12,7 @@ from gorrabot.api.slack.messages import send_message_to_user
 from gorrabot.api.slack.users import get_slack_user_data
 from gorrabot.constants import OLD_MEMBERS
 from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests
+from gorrabot.config import config
 
 DRY_RUN = os.environ.get("DRY_RUN", None)
 
