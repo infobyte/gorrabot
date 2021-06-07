@@ -13,4 +13,4 @@ def slack_to_gitlab_user(user: str):
     return slack_to_gitlab_user_dict[user] if user in slack_to_gitlab_user_dict else None
 
 
-MAX_ISSUES_ACCEPTED = 2
+MAX_ISSUES_ACCEPTED = int(config['gitlab'].get('MAX_ISSUES_ACCEPTED', 2))
