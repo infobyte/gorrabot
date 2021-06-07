@@ -5,9 +5,7 @@ from gorrabot.config import config
 
 BACKLOG_MILESTONE = config['gitlab'].get('BACKLOG_MILESTONE', [])
 
-OLD_MEMBERS = [
-    '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***',
-    '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***']
+OLD_MEMBERS = config['gitlab'].get('OLD_MEMBERS', [])
 
 MSG_MISSING_CHANGELOG = (
     'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
