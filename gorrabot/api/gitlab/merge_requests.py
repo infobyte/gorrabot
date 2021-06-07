@@ -2,8 +2,10 @@ import datetime
 import logging
 
 from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
+from gorrabot.api.gitlab.projects import get_project_name
 from gorrabot.api.gitlab.utils import paginated_get
 from gorrabot.api.utils import parse_api_date
+from gorrabot.config import config
 
 logger = logging.getLogger(__name__)
 
