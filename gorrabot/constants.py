@@ -84,7 +84,7 @@ inactivity_time = datetime.timedelta(days=config['gitlab'].get('inactivity_time'
 stale_mr_message_interval = datetime.timedelta(days=config['gitlab'].get('stale_mr_message_interval', 7))
 
 # Time to wait until a new message indicating the MR is stale is created
-decision_issue_message_interval = datetime.timedelta(days=0)
+decision_issue_message_interval = datetime.timedelta(days=config['gitlab'].get('decision_issue_message_interval', 0))
 
 
 __other_regex = {
