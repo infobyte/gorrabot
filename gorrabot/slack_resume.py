@@ -18,7 +18,7 @@ DRY_RUN = os.environ.get("DRY_RUN", None)
 
 REPORT_USERS = ["***REMOVED***"]
 
-project_ids = [int(i) for i in sys.argv[1].split(',')]
+project_ids = [int(config[project_name]['id']) for project_name in config]
 
 
 """
