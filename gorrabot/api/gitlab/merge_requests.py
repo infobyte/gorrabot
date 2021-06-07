@@ -85,7 +85,7 @@ def get_related_merge_requests(project_id: int, issue_iid: int):
 
 def comment_mr(project_id: int, iid: int, body: str, can_be_duplicated=True, min_time_between_comments=None):
     project_name = get_project_name(project_id)
-    comment_mr = config[project_name].get('comment_mr', None)
+    comment_mr = config['projects'][project_name].get('comment_mr', None)
     if not (comment_mr or isinstance(comment_mr, bool)):
         return
     if not can_be_duplicated:

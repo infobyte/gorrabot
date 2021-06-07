@@ -108,7 +108,7 @@ def handle_push(push: dict) -> str:
         )
         return flask.abort(400, "project not in the configuration")
 
-    branch_regex = regex_dict[project_name]
+    branch_regex = regex_dict['projects'][project_name]
     branch_name = push['ref'][len(prefix):]
 
     if not re.match(branch_regex, branch_name):
@@ -122,7 +122,7 @@ def handle_push(push: dict) -> str:
             send_debug_message("dev or master branch")
     else:
         check_labels_weight_and_milestone(push, branch_name)
-        if 'multi-branch' in config[project_name]:
+        if 'multi-branch' in config['projects'][project_name]:
             return handle_multi_main_push(push, prefix)
 
     return 'OK'
@@ -184,8 +184,8 @@ def handle_mr(mr_json: dict) -> str:
 def check_status(mr_json: dict, project_name: str) -> NoReturn:
     if (
             has_label(mr_json, GitlabLabels.NO_CHANGELOG) or
-            ('flags' in config[project_name] and
-             "NO_CHANGELOG" in [flag.upper() for flag in config[project_name]['flags']]
+            ('flags' in config['projects'][project_name] and
+             "NO_CHANGELOG" in [flag.upper() for flag in config['projects'][project_name]['flags']]
              )
     ):
         logger.info('Ignoring MR Changelog')
@@ -195,7 +195,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
     username = get_username(mr_json)
 
-    changelog_filetype = config[project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
+    changelog_filetype = config['projects'][project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
                                                                     else '.md'
 
     if not has_changed_changelog(project_id, iid, project_name, only_md=True):
@@ -210,7 +210,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
 
 def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     project_name = push["repository"]["name"]
-    branch_regex = regex_dict[project_name]
+    branch_regex = regex_dict['projects'][project_name]
     issue_iid = re.match(branch_regex, branch_name).group("iid")
     project_id = push['project_id']
     issue = get_issue(project_id, issue_iid)
@@ -255,14 +255,14 @@ def has_changed_changelog(project_id: int, iid: int, project_name, only_md: bool
     changed_files = get_changed_files(changes)
     for filename in changed_files:
         if filename.startswith('CHANGELOG'):
-            valid_ext = config[project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
+            valid_ext = config['projects'][project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
                                                                    else '.md'
             if not only_md or filename.endswith(valid_ext):
                 return True
             else:
                 if 'changelog_exceptions' in config[project_name]:
                     _, file_name = os.path.split(filename)
-                    if file_name in config[project_name]['changelog_exceptions']:
+                    if file_name in config['projects'][project_name]['changelog_exceptions']:
                         return True
 
     return False

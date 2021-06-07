@@ -90,9 +90,9 @@ decision_issue_message_interval = datetime.timedelta(days=0)
 
 
 __other_regex = {
-    project_name: config[project_name]['regex']
-    for project_name in config
-    if 'regex' in config[project_name]
+    project_name: config['projects'][project_name]['regex']
+    for project_name in config['projects']
+    if 'regex' in config['projects'][project_name]
 }
 # iid must be with this format: "P<iid>\d+"
 regex_dict = defaultdict(lambda: r'^(?:tkt|mig|sup|exp)_(?P<iid>\d+|y2k)[-_].+', __other_regex)
