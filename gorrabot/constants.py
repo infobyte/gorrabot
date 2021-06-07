@@ -78,7 +78,7 @@ MSG_BACKLOG_MILESTONE = "Tiene Backlog como milestone!"
 
 # Define inactivity as a merge request whose last commit is older than
 # now() - inactivity_time
-inactivity_time = datetime.timedelta(days=30)
+inactivity_time = datetime.timedelta(days=config['gitlab'].get('inactivity_time', 30))
 
 # Time to wait until a new message indicating the MR is stale is created
 stale_mr_message_interval = datetime.timedelta(days=7)
