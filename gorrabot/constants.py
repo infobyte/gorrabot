@@ -81,7 +81,7 @@ MSG_BACKLOG_MILESTONE = "Tiene Backlog como milestone!"
 inactivity_time = datetime.timedelta(days=config['gitlab'].get('inactivity_time', 30))
 
 # Time to wait until a new message indicating the MR is stale is created
-stale_mr_message_interval = datetime.timedelta(days=7)
+stale_mr_message_interval = datetime.timedelta(days=config['gitlab'].get('stale_mr_message_interval', 7))
 
 # Time to wait until a new message indicating the MR is stale is created
 decision_issue_message_interval = datetime.timedelta(days=0)
