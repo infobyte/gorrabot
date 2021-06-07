@@ -1,3 +1,4 @@
+from gorrabot.config import config
 
 gitlab_to_slack_user_dict = {
     "***REMOVED***": "***REMOVED***",
