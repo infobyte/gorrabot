@@ -108,7 +108,7 @@ def handle_push(push: dict) -> str:
         )
         return flask.abort(400, "project not in the configuration")
 
-    branch_regex = regex_dict['projects'][project_name]
+    branch_regex = regex_dict[project_name]
     branch_name = push['ref'][len(prefix):]
 
     if not re.match(branch_regex, branch_name):
