@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from gorrabot.config import config
 
-BACKLOG_MILESTONE = ["Backlog", "Reviewed Backlog"]
+BACKLOG_MILESTONE = config['gitlab'].get('BACKLOG_MILESTONE', [])
 
 OLD_MEMBERS = [
     '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***',
