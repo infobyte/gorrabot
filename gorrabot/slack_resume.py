@@ -16,7 +16,7 @@ from gorrabot.config import config
 
 DRY_RUN = os.environ.get("DRY_RUN", None)
 
-REPORT_USERS = ["***REMOVED***"]
+REPORT_USERS = config['gitlab'].get('REPORT_USERS', [])
 
 project_ids = [int(config['projects'][project_name]['id']) for project_name in config]
 
