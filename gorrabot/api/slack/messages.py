@@ -1,6 +1,7 @@
 import os
 
 from gorrabot.api.slack import slack_session, SLACK_API_PREFIX
+from gorrabot.config import config
 
 
 def send_message_to_user(slack_user: str, text: str, slack_users_data: dict):
