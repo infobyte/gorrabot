@@ -21,7 +21,7 @@ def send_message_to_user(slack_user: str, text: str, slack_users_data: dict):
         return res
 
 
-def send_message_to_channel(slack_channel: str, text: str):
+def send_message_to_channel(slack_channel: str, text: str, project_name: str):
     params = {
         "channel": slack_channel,
         "text": text,
@@ -31,8 +31,8 @@ def send_message_to_channel(slack_channel: str, text: str):
     return res
 
 
-def send_message_to_error_channel(text: str):
-    send_message_to_channel("#***REMOVED***-notification", text)
+def send_message_to_error_channel(text: str, project_name: str):
+    send_message_to_channel("#***REMOVED***-notification", text, project_name)
 
 
 def send_debug_message(text: str):
