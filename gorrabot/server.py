@@ -113,7 +113,9 @@ def handle_push(push: dict) -> str:
     branch_name = push['ref'][len(prefix):]
 
     if not re.match(branch_regex, branch_name):
-        if not re.match(r"^((dev|master)|(.*/(dev|master)))$", branch_name):
+        regex_branch_exceptions = config['projects'][project_name].get('regex_branch_exceptions', [])
+        if not re.match(r"^((dev|master)|(.*/(dev|master)))$", branch_name) \
+                and branch_name not in regex_branch_exceptions:
             logger.warning("Branch does not match with regex")
             send_debug_message("Branch does not match with regex")
             send_message_to_error_channel(f"Unexpected push to `{project_name}`, branch `{branch_name}` do not follow "
@@ -219,10 +221,22 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     issue = get_issue(project_id, issue_iid)
     messages = []
     labels: List[str] = issue['labels']
-    if all([not label.startswith("priority::") for label in labels]):
+    if (
+            all([not label.startswith("priority::") for label in labels]) and not
+            (
+                'flags' in config[project_name] and
+                "NO_PRIORITY" in [flag.upper() for flag in config[project_name]['flags']]
+            )
+    ):
         logger.info("No priority label found")
         messages.append(MSG_WITHOUT_PRIORITY)
-    if all([not label.startswith("severity::") for label in labels]):
+    if (
+            all([not label.startswith("severity::") for label in labels]) and not
+            (
+                'flags' in config[project_name] and
+                "NO_SEVERITY" in [flag.upper() for flag in config[project_name]['flags']]
+            )
+    ):
         logger.info("No severity label found")
         messages.append(MSG_WITHOUT_SEVERITY)
     weight = issue['weight']
