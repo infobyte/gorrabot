@@ -129,7 +129,7 @@ def handle_push(push: dict) -> str:
 
 
 def handle_mr(mr_json: dict) -> str:
-    if has_label(mr_json, GitlabLabels.SACATE_LA_GORRA):
+    if has_label(mr_json, GitlabLabels.DONT_TRACK):
         logger.warning('Ignoring because of label flag')
         send_debug_message('Ignoring because of label flag')
         return 'Ignoring all!'

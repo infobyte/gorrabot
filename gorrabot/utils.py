@@ -99,7 +99,7 @@ def get_decision_issues(project_id: int):
     }
     issues = get_issues(project_id, filters)
     for issue in issues:
-        if GitlabLabels.NO_ME_APURES in issue['labels']:
+        if GitlabLabels.DONT_RUSH_ME in issue['labels']:
             continue
         updated_at = parse_api_date(issue['updated_at'])
         if datetime.datetime.utcnow() - updated_at > decision_issue_message_interval:
@@ -126,7 +126,7 @@ def get_staled_merge_requests(project_id: int, wip=None):
     }
     mrs = get_merge_requests(project_id, filters)
     for mr in mrs:
-        if GitlabLabels.NO_ME_APURES in mr['labels']:
+        if GitlabLabels.DONT_RUSH_ME in mr['labels']:
             continue
         if mr['source_branch'] and mr['source_branch'].startswith('exp_'):
             continue
