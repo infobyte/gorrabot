@@ -23,6 +23,13 @@ def send_message_to_user(slack_user: str, text: str, slack_users_data: dict):
 
 
 def send_message_to_channel(slack_channel: str, text: str, project_name: str):
+
+    send_message_to_slack = config['projects'][project_name].get('send_message_to_slack', None)
+
+    if not send_message_to_slack:
+        print(f"'send_message_to_slack' has not been set in {project_name} project")
+        return
+
     params = {
         "channel": slack_channel,
         "text": text,
