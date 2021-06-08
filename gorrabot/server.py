@@ -104,7 +104,8 @@ def handle_push(push: dict) -> str:
     project_name = push["repository"]["name"]
     if project_name not in config:
         send_message_to_error_channel(
-            text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
+            text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration",
+            project_name=project_name
         )
         return flask.abort(400, "project not in the configuration")
 
@@ -116,7 +117,8 @@ def handle_push(push: dict) -> str:
             logger.warning("Branch does not match with regex")
             send_debug_message("Branch does not match with regex")
             send_message_to_error_channel(f"Unexpected push to `{project_name}`, branch `{branch_name}` do not follow "
-                                          "expected regex format")
+                                          "expected regex format",
+                                          project_name=project_name)
         else:
             logger.info("dev or master branch")
             send_debug_message("dev or master branch")
@@ -141,7 +143,8 @@ def handle_mr(mr_json: dict) -> str:
         logger.warning('Project not in the configuration')
         send_debug_message('Project not in the configuration')
         send_message_to_error_channel(
-            text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
+            text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration",
+            project_name=project_name
         )
         return flask.abort(400, "Project not in the configuration")
 
@@ -246,7 +249,7 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
             error_message = MSG_NOTIFICATION_PREFIX_WITHOUT_USER.format(user=username, branch=branch_name)
 
         error_message = f"{error_message}{error_message_list}"
-        send_message_to_error_channel(error_message)
+        send_message_to_error_channel(error_message, project_name=project_name)
 
 
 # @ehorvat: I believe this should be in a utils as it depends on gitlab
