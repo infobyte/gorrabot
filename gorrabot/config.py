@@ -1,6 +1,6 @@
 import yaml
 import re
-from functools import lru_cache
+from functools import cache
 
 from gorrabot.api.vault import SECRET_NAME, GORRABOT_CONFIG_FILE, get_secret
 from gorrabot.timer import GorrabotTimer
@@ -14,7 +14,7 @@ def load_yaml(data):  # TODO I DO NOT LIKE THIS HERE
         exit(1)
 
 
-@lru_cache
+@cache
 def read_config(secret) -> dict:
     if not secret:
         print("Invalid secret: Be sure you've set either SECRET_NAME or GORRABOT_CONFIG_FILE")
