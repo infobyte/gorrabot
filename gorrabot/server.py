@@ -354,7 +354,7 @@ def check_issue_reference_in_description(mr_json: dict):
 
 
 def is_multi_main_mr(mr_json):
-    return 'multi-branch' in config[mr_json["repository"]["name"]]
+    return 'multi-branch' in config['projects'][mr_json["repository"]["name"]]
 
 
 def main():
