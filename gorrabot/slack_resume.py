@@ -19,7 +19,7 @@ DRY_RUN = os.environ.get("DRY_RUN", None)
 REPORT_USERS = config['gitlab'].get('REPORT_USERS', [])
 
 project_ids = [int(config['projects'][project_name]['id']) for project_name in config]
-
+print(project_ids)
 
 """
 The idea of this script is identify who is blocking other dev and notify about this:

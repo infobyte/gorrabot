@@ -37,4 +37,5 @@ def read_config(secret) -> dict:
 
 secret = get_secret(SECRET_NAME) if SECRET_NAME else GORRABOT_CONFIG_FILE['path']
 config = read_config(secret)
-gorrabot_timer = GorrabotTimer(read_config.cache_clear, 1).start()  # execute every 30 minutes
+print(config)
+gorrabot_timer = GorrabotTimer(read_config.cache_clear, 1800).start()  # execute every 30 minutes
