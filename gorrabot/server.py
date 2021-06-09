@@ -157,7 +157,7 @@ def handle_mr(mr_json: dict) -> str:
     if not re.match(branch_regex, mr_attributes['source_branch']):
         logger.info("Branch do not match regex")
         send_debug_message("Branch do not match regex")
-        msg_bad_branch_name = MSG_BAD_BRANCH_NAME.format(main_branches=config[project_name]['multi-branch'])
+        msg_bad_branch_name = MSG_BAD_BRANCH_NAME.format(main_branches=config['projects'][project_name]['multi-branch'])
         comment_mr(project_id, iid, f"@{username}: {msg_bad_branch_name}", can_be_duplicated=False)
 
     is_multi_main = is_multi_main_mr(mr_json)
@@ -201,7 +201,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
     username = get_username(mr_json)
 
     changelog_filetype = config['projects'][project_name]['changelog_filetype'] \
-                         if 'changelog_filetype' in config[project_name] else '.md'
+                         if 'changelog_filetype' in config['projects'][project_name] else '.md'
 
     if not has_changed_changelog(project_id, iid, project_name, only_md=True):
         if has_changed_changelog(project_id, iid, project_name, only_md=False):
@@ -224,8 +224,8 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     if (
             all([not label.startswith("priority::") for label in labels]) and not
             (
-                'flags' in config[project_name] and
-                "NO_PRIORITY" in [flag.upper() for flag in config[project_name]['flags']]
+                'flags' in config['projects'][project_name] and
+                "NO_PRIORITY" in [flag.upper() for flag in config['projects'][project_name]['flags']]
             )
     ):
         logger.info("No priority label found")
@@ -233,8 +233,8 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     if (
             all([not label.startswith("severity::") for label in labels]) and not
             (
-                'flags' in config[project_name] and
-                "NO_SEVERITY" in [flag.upper() for flag in config[project_name]['flags']]
+                'flags' in config['projects'][project_name] and
+                "NO_SEVERITY" in [flag.upper() for flag in config['projects'][project_name]['flags']]
             )
     ):
         logger.info("No severity label found")
@@ -272,12 +272,13 @@ def has_changed_changelog(project_id: int, iid: int, project_name, only_md: bool
     changed_files = get_changed_files(changes)
     for filename in changed_files:
         if filename.startswith('CHANGELOG'):
-            valid_ext = config['projects'][project_name]['changelog_filetype'] if 'changelog_filetype' in config[project_name] \
-                                                                   else '.md'
+            valid_ext = config['projects'][project_name]['changelog_filetype'] \
+                        if 'changelog_filetype' in config['projects'][project_name] \
+                        else '.md'
             if not only_md or filename.endswith(valid_ext):
                 return True
             else:
-                if 'changelog_exceptions' in config[project_name]:
+                if 'changelog_exceptions' in config['projects'][project_name]:
                     _, file_name = os.path.split(filename)
                     if file_name in config['projects'][project_name]['changelog_exceptions']:
                         return True

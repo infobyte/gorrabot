@@ -116,7 +116,7 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
     new_mr = create_mr(previous_mr['source_project_id'], mr_data)
     fill_fields_based_on_issue(new_mr)
     username = get_username(previous_mr)
-    msg_new_mr_created = MSG_NEW_MR_CREATED.format(base_branch=config[project_name]['multi-branch'][0])
+    msg_new_mr_created = MSG_NEW_MR_CREATED.format(base_branch=config['projects'][project_name]['multi-branch'][0])
     return comment_mr(
         project_id,
         new_mr['iid'],
@@ -183,7 +183,7 @@ def notify_unmerged_superior_mrs(mr_json: dict, project_name: str):
     username = mr['merged_by']['username']
     msg_check_superior = MSG_CHECK_SUPERIOR_MR.format(
         prev_main_branches=f"({','.join(config['projects'][project_name]['multi-branch'][:-1])})",
-        main_branches=[f"{branch}/dev" for branch in config[project_name]['multi-branch']]
+        main_branches=[f"{branch}/dev" for branch in config['projects'][project_name]['multi-branch']]
     )
     for rmr in related_mrs:
         comment_mr(
