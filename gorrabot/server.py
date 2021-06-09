@@ -102,7 +102,7 @@ def handle_push(push: dict) -> str:
         return msg
 
     project_name = push["repository"]["name"]
-    if project_name not in config:
+    if project_name not in config['projects']:
         send_message_to_error_channel(
             text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration",
             project_name=project_name
@@ -141,7 +141,7 @@ def handle_mr(mr_json: dict) -> str:
     mr_attributes = mr_json['object_attributes']
     project_name = mr_json["repository"]["name"]
 
-    if project_name not in config:
+    if project_name not in config['projects']:
         logger.warning('Project not in the configuration')
         send_debug_message('Project not in the configuration')
         send_message_to_error_channel(
