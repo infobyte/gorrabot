@@ -8,7 +8,7 @@ from collections import defaultdict
 from gorrabot.api.constants import gitlab_to_slack_user, MAX_ISSUES_ACCEPTED
 from gorrabot.api.gitlab.issues import get_accepted_issues
 from gorrabot.api.gitlab.usernames import get_usernames_from_mr_or_issue
-from gorrabot.api.slack.messages import send_message_to_user
+from gorrabot.api.slack.messages import send_message_to_user, check_can_send_slack_messages
 from gorrabot.api.slack.users import get_slack_user_data
 from gorrabot.constants import OLD_MEMBERS
 from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests
@@ -70,6 +70,13 @@ def main():
 
         for function_dict in checking_functions:
             for elem in function_dict["elem_picker"](project_id):
+
+                can_send_message = check_can_send_slack_messages(elem['project_id'])
+
+                if not can_send_message:
+                    # project cannot send messages to Slack
+                    continue
+
                 usernames = function_dict["user_picker"](elem)
 
                 for username in usernames:
