@@ -5,8 +5,12 @@ from gorrabot.api.slack import slack_session, SLACK_API_PREFIX
 from gorrabot.config import config
 
 
-def check_can_send_slack_messages(project_id: int):
+def check_can_send_slack_messages(project_id=None):
     """ Checks the send_message_to_slack config param is set """
+
+    if not project_id:
+        print("Invalid project id")
+        return
 
     project_name = get_project_name(project_id)
 
@@ -35,7 +39,7 @@ def send_message_to_user(slack_user: str, text: str, slack_users_data: dict):
         return res
 
 
-def send_message_to_channel(slack_channel: str, text: str, project_id: int):
+def send_message_to_channel(slack_channel: str, text: str, project_id=None):
 
     can_send_message = check_can_send_slack_messages(project_id)
 
@@ -56,6 +60,6 @@ def send_message_to_error_channel(text: str, project_id: int):
     send_message_to_channel("#***REMOVED***-notification", text, project_id)
 
 
-def send_debug_message(text: str, project_id: int):
+def send_debug_message(text: str):
     if 'DEBUG' in os.environ:
-        send_message_to_channel("***REMOVED***", text, project_id)  # ***REMOVED*** ID
+        send_message_to_channel("***REMOVED***", text)  # ***REMOVED*** ID
