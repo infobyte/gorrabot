@@ -23,8 +23,9 @@ def get_related_issue_iid(mr: dict):
     branch_regex = regex_dict[project_name]
     try:
         iid = re.match(branch_regex, branch).group('iid')
-    except IndexError:
+    except (IndexError, AttributeError):
         return
+
     try:
         return int(iid)
     except ValueError:
