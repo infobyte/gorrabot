@@ -154,7 +154,9 @@ def handle_mr(mr_json: dict) -> str:
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
 
     branch_regex = regex_dict[mr_json['repository']['name']]
-    if not re.match(branch_regex, mr_attributes['source_branch']):
+    regex_branch_exceptions = config['projects'][project_name].get('regex_branch_exceptions', [])
+    if not re.match(branch_regex, mr_attributes['source_branch']) \
+       and mr_attributes['source_branch'] not in regex_branch_exceptions:
         logger.info("Branch do not match regex")
         send_debug_message("Branch do not match regex")
         msg_bad_branch_name = MSG_BAD_BRANCH_NAME.format(main_branches=config['projects'][project_name]['multi-branch'])
