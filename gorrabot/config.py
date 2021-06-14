@@ -15,7 +15,8 @@ def load_yaml(data):  # TODO I DO NOT LIKE THIS HERE
 
 
 @cache
-def read_config(secret) -> dict:
+def read_config() -> dict:
+    secret = get_secret(SECRET_NAME) if SECRET_NAME else GORRABOT_CONFIG_FILE['path']
     if not secret:
         print("Invalid secret: Be sure you've set either SECRET_NAME or GORRABOT_CONFIG_FILE")
         exit(1)
@@ -35,6 +36,5 @@ def read_config(secret) -> dict:
     return load_yaml(secret)
 
 
-secret = get_secret(SECRET_NAME) if SECRET_NAME else GORRABOT_CONFIG_FILE['path']
-config = read_config(secret)
+config = read_config()
 gorrabot_timer = GorrabotTimer(read_config.cache_clear, 1800).start()  # execute every 30 minutes
