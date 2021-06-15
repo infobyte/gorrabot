@@ -2,7 +2,7 @@ import yaml
 import re
 from functools import lru_cache
 
-from gorrabot.api.vault import SECRET_NAME, GORRABOT_CONFIG_FILE, get_secret
+from gorrabot.api.vault import SECRETS, GORRABOT_CONFIG_FILE, get_secret
 from gorrabot.timer import GorrabotTimer
 
 
@@ -16,9 +16,9 @@ def load_yaml(data):  # TODO I DO NOT LIKE THIS HERE
 
 @lru_cache
 def read_config() -> dict:
-    secret = get_secret(SECRET_NAME['config']) if SECRET_NAME['config'] else GORRABOT_CONFIG_FILE['path']
+    secret = get_secret(SECRETS['config']) if SECRETS['config'] else GORRABOT_CONFIG_FILE['path']
     if not secret:
-        print("Invalid secret: Be sure you've set either SECRET_NAME or GORRABOT_CONFIG_FILE")
+        print("Invalid secret: Be sure you've set either CONFIG_SECRET_NAME or GORRABOT_CONFIG_FILE")
         exit(1)
 
     if re.match(GORRABOT_CONFIG_FILE['path_regex'], secret):  # must be an absolute path
