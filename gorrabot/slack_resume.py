@@ -61,6 +61,12 @@ def main():
 
     for project_id in project_ids:
 
+        can_send_message = check_can_send_slack_messages(project_id)
+
+        if not can_send_message:
+            # project cannot send messages to Slack
+            continue
+
         checking_functions = [
             {"elem_picker": get_staled_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_WIP},
             {"elem_picker": get_staled_no_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_NO_WIP},
@@ -70,12 +76,6 @@ def main():
 
         for function_dict in checking_functions:
             for elem in function_dict["elem_picker"](project_id):
-
-                can_send_message = check_can_send_slack_messages(elem['project_id'])
-
-                if not can_send_message:
-                    # project cannot send messages to Slack
-                    continue
 
                 usernames = function_dict["user_picker"](elem)
 

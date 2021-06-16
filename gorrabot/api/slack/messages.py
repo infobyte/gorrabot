@@ -2,7 +2,7 @@ import os
 
 from gorrabot.api.gitlab.projects import get_project_name
 from gorrabot.api.slack import slack_session, SLACK_API_PREFIX
-from gorrabot.config import config
+from gorrabot.config import config, DEBUG_MODE
 
 
 def check_can_send_slack_messages(project_id=None):
@@ -16,7 +16,7 @@ def check_can_send_slack_messages(project_id=None):
 
     send_message_to_slack = False
     if project_name in config['projects']:
-        send_message_to_slack = config['projects'][project_name].get('send_message_to_slack', False)
+        send_message_to_slack = config['projects'][project_name].get('send_message_to_slack', True)
 
     return send_message_to_slack
 
@@ -57,7 +57,8 @@ def send_message_to_channel(slack_channel: str, text: str, project_id=None):
 
 
 def send_message_to_error_channel(text: str, project_id: int):
-    send_message_to_channel("#***REMOVED***-notification", text, project_id)
+    if not DEBUG_MODE:
+        send_message_to_channel("#***REMOVED***-notification", text, project_id)
 
 
 def send_debug_message(text: str):

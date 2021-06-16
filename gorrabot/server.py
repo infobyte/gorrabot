@@ -22,7 +22,7 @@ from gorrabot.api.gitlab.merge_requests import (
 )
 from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
-from gorrabot.config import config
+from gorrabot.config import config, DEBUG_MODE
 from gorrabot.constants import (
     NO_VALID_CHANGELOG_FILETYPE,
     MSG_BAD_BRANCH_NAME,
@@ -60,7 +60,7 @@ def status():
 
 @app.route('/webhook', methods=['POST'])
 def homepage():
-    if request.headers.get('X-Gitlab-Token') != GITLAB_REQUEST_TOKEN:
+    if not DEBUG_MODE and request.headers.get('X-Gitlab-Token') != GITLAB_REQUEST_TOKEN:
         abort(403)
     json = request.get_json()
     if json is None:

@@ -1,9 +1,13 @@
+import os
 import yaml
 import re
 from functools import lru_cache
 
 from gorrabot.api.vault import SECRETS, GORRABOT_CONFIG_FILE, get_secret
 from gorrabot.timer import GorrabotTimer
+
+
+DEBUG_MODE = os.environ.get('GORRABOT_DEBUG')
 
 
 def load_yaml(data):  # TODO I DO NOT LIKE THIS HERE
@@ -16,7 +20,7 @@ def load_yaml(data):  # TODO I DO NOT LIKE THIS HERE
 
 @lru_cache
 def read_config() -> dict:
-    secret = get_secret(SECRETS['config']) if SECRETS['config'] else GORRABOT_CONFIG_FILE['path']
+    secret = get_secret(SECRETS['config']) if 'config' in SECRETS else GORRABOT_CONFIG_FILE['path']
     if not secret:
         print("Invalid secret: Be sure you've set either CONFIG_SECRET_NAME or GORRABOT_CONFIG_FILE")
         exit(1)
