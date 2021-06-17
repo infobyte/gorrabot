@@ -217,7 +217,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
 
 def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     project_name = push["repository"]["name"]
-    branch_regex = regex_dict['projects'][project_name]
+    branch_regex = regex_dict[project_name]
     issue_iid = re.match(branch_regex, branch_name).group("iid")
     project_id = push['project_id']
     issue = get_issue(project_id, issue_iid)

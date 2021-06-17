@@ -27,7 +27,7 @@ def get_previous_or_next(project_name: str, branch_name: str, previous: bool) ->
     (e.g. tkt_***REMOVED***_XXXX_extra; not tkt_***REMOVED***_XXXX_extra)
     """
     parent_branches: List[str] = config['projects'][project_name]['multi-branch']
-    main_branch = re.match(regex_dict['projects'][project_name], branch_name).group('base')
+    main_branch = re.match(regex_dict[project_name], branch_name).group('base')
     if previous:
         others_parent_main_branches = parent_branches[:parent_branches.index(main_branch)]
     else:
