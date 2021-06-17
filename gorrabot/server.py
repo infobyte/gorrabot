@@ -260,9 +260,14 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
         if username in gitlab_to_slack_user_dict:
             error_message = MSG_NOTIFICATION_PREFIX_WITH_USER.format(
                 user=gitlab_to_slack_user_dict[username],
-                branch=branch_name)
+                branch=branch_name,
+                project_name=project_name
+            )
         else:
-            error_message = MSG_NOTIFICATION_PREFIX_WITHOUT_USER.format(user=username, branch=branch_name)
+            error_message = MSG_NOTIFICATION_PREFIX_WITHOUT_USER.format(user=username,
+                                                                        branch=branch_name,
+                                                                        project_name=project_name
+                                                                        )
 
         error_message = f"{error_message}{error_message_list}"
         send_message_to_error_channel(error_message, project_id=config['projects'][project_name]['id'])
