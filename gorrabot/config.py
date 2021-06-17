@@ -1,13 +1,44 @@
+import os
 import yaml
+import re
+from functools import lru_cache
+
+from gorrabot.api.vault import SECRETS, GORRABOT_CONFIG_FILE, get_secret
+from gorrabot.timer import GorrabotTimer
 
 
+DEBUG_MODE = os.environ.get('GORRABOT_DEBUG')
+
+
+def load_yaml(data):  # TODO I DO NOT LIKE THIS HERE
+    try:
+        return yaml.safe_load(data)
+    except yaml.YAMLError as exc:
+        print(exc)
+        exit(1)
+
+
+@lru_cache
 def read_config() -> dict:
-    with open("config.yaml", 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
+    secret = get_secret(SECRETS['config']) if 'config' in SECRETS else GORRABOT_CONFIG_FILE['path']
+    if not secret:
+        print("Invalid secret: Be sure you've set either CONFIG_SECRET_NAME or GORRABOT_CONFIG_FILE")
+        exit(1)
+
+    if re.match(GORRABOT_CONFIG_FILE['path_regex'], secret):  # must be an absolute path
+        if not secret.endswith('.yaml'):
+            print("Invalid GORRABOT_CONFIG_FILE: It must be a .yaml file")
             exit(1)
+
+        try:
+            with open(secret, 'r') as stream:
+                return load_yaml(stream)
+        except FileNotFoundError:
+            print("File not found")
+            exit(1)
+
+    return load_yaml(secret)
 
 
 config = read_config()
+gorrabot_timer = GorrabotTimer(read_config.cache_clear, 1800).start()  # execute every 30 minutes

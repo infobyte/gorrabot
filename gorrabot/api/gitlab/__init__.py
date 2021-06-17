@@ -1,6 +1,8 @@
 import os
 import requests
 
+from gorrabot.config import config
+
 GITLAB_TOKEN = os.environ['GITLAB_TOKEN']
 GITLAB_REQUEST_TOKEN = os.environ['GITLAB_CHECK_TOKEN']
 GITLAB_SELF_USERNAME = os.environ['GITLAB_BOT_USERNAME']
@@ -12,9 +14,9 @@ gitlab_session.headers['Private-Token'] = GITLAB_TOKEN
 
 
 class GitlabLabels:
-    NO_ME_APURES = 'no-me-apures'
-    NO_CHANGELOG = 'no-changelog'
-    SACATE_LA_GORRA = 'sacate-la-gorra'
-    MULTIPLE_MR = 'multiple-merge-requests'
-    TEST = 'stage::Test'
-    ACCEPTED = 'stage::Accepted'
+    DONT_RUSH_ME = config['gitlab']['labels'].get('DONT_RUSH_ME', 'Do not rush me')
+    NO_CHANGELOG = config['gitlab']['labels'].get('NO_CHANGELOG', 'No changelog')
+    DONT_TRACK = config['gitlab']['labels'].get('DONT_TRACK', 'Do not track')
+    MULTIPLE_MR = config['gitlab']['labels'].get('MULTIPLE_MR', 'Multiple MR')
+    TEST = config['gitlab']['labels'].get('TEST', 'Test')
+    ACCEPTED = config['gitlab']['labels'].get('ACCEPTED', 'Accepted')

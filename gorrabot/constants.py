@@ -3,11 +3,9 @@ from collections import defaultdict
 
 from gorrabot.config import config
 
-BACKLOG_MILESTONE = ["Backlog", "Reviewed Backlog"]
+BACKLOG_MILESTONE = config['gitlab'].get('BACKLOG_MILESTONE', [])
 
-OLD_MEMBERS = [
-    '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***',
-    '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***', '***REMOVED***']
+OLD_MEMBERS = config['gitlab'].get('OLD_MEMBERS', [])
 
 MSG_MISSING_CHANGELOG = (
     'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
@@ -80,19 +78,20 @@ MSG_BACKLOG_MILESTONE = "Tiene Backlog como milestone!"
 
 # Define inactivity as a merge request whose last commit is older than
 # now() - inactivity_time
-inactivity_time = datetime.timedelta(days=30)
+inactivity_time = datetime.timedelta(days=config['gitlab'].get('inactivity_time', 30))
 
 # Time to wait until a new message indicating the MR is stale is created
-stale_mr_message_interval = datetime.timedelta(days=7)
+stale_mr_message_interval = datetime.timedelta(days=config['gitlab'].get('stale_mr_message_interval', 7))
 
 # Time to wait until a new message indicating the MR is stale is created
-decision_issue_message_interval = datetime.timedelta(days=0)
+decision_issue_message_interval = datetime.timedelta(days=config['gitlab'].get('decision_issue_message_interval', 0))
 
 
 __other_regex = {
-    project_name: config[project_name]['regex']
-    for project_name in config
-    if 'regex' in config[project_name]
+    project_name: config['projects'][project_name]['regex']
+    for project_name in config['projects']
+    if 'regex' in config['projects'][project_name]
 }
+# iid must be with this format: "P<iid>\d+"
 regex_dict = defaultdict(lambda: r'^(?:tkt|mig|sup|exp)_(?P<iid>\d+|y2k)[-_].+', __other_regex)
 

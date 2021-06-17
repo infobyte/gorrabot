@@ -26,8 +26,8 @@ def get_previous_or_next(project_name: str, branch_name: str, previous: bool) ->
     This will get the branch (e.g. tkt_***REMOVED***_XXXX_extra), and check if the previous branches MR exists
     (e.g. tkt_***REMOVED***_XXXX_extra; not tkt_***REMOVED***_XXXX_extra)
     """
-    parent_branches: List[str] = config[project_name]['multi-branch']
-    main_branch = re.match(regex_dict[project_name], branch_name).group('base')
+    parent_branches: List[str] = config['projects'][project_name]['multi-branch']
+    main_branch = re.match(regex_dict['projects'][project_name], branch_name).group('base')
     if previous:
         others_parent_main_branches = parent_branches[:parent_branches.index(main_branch)]
     else:
@@ -116,7 +116,7 @@ def ensure_upper_version_is_created(push: dict, branch_name: str, previous_branc
     new_mr = create_mr(previous_mr['source_project_id'], mr_data)
     fill_fields_based_on_issue(new_mr)
     username = get_username(previous_mr)
-    msg_new_mr_created = MSG_NEW_MR_CREATED.format(base_branch=config[project_name]['multi-branch'][0])
+    msg_new_mr_created = MSG_NEW_MR_CREATED.format(base_branch=config['projects'][project_name]['multi-branch'][0])
     return comment_mr(
         project_id,
         new_mr['iid'],
@@ -182,8 +182,8 @@ def notify_unmerged_superior_mrs(mr_json: dict, project_name: str):
 
     username = mr['merged_by']['username']
     msg_check_superior = MSG_CHECK_SUPERIOR_MR.format(
-        prev_main_branches=f"({','.join(config[project_name]['multi-branch'][:-1])})",
-        main_branches=[f"{branch}/dev" for branch in config[project_name]['multi-branch']]
+        prev_main_branches=f"({','.join(config['projects'][project_name]['multi-branch'][:-1])})",
+        main_branches=[f"{branch}/dev" for branch in config['projects'][project_name]['multi-branch']]
     )
     for rmr in related_mrs:
         comment_mr(
