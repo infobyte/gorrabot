@@ -5,6 +5,7 @@ from gorrabot.api.gitlab.merge_requests import comment_mr
 from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.constants import OLD_MEMBERS, MSG_MR_OLD_MEMBER, stale_mr_message_interval, MSG_STALE_MR
 from gorrabot.utils import get_staled_merge_requests
+from gorrabot.config import config
 
 """"(
     comment_mr,
@@ -15,10 +16,10 @@ from gorrabot.utils import get_staled_merge_requests
     OLD_MEMBERS,
     stale_mr_message_interval,
 )"""
+project_ids = [int(config['projects'][project_name]['id']) for project_name in config['projects']]
 
 
 def main():
-    project_ids = [int(i) for i in sys.argv[1].split(',')]
     for project_id in project_ids:
         staled = list(get_staled_merge_requests(project_id, wip='yes'))
         print(f'Found {len(staled)} staled merge requests in project: {project_id}')
