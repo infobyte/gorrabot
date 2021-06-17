@@ -1,7 +1,7 @@
 import os
 
 # Vault server constants
-FARADAY_VAULT_SERVER = "https://tluav-lb.***REMOVED***.com/"
+VAULT_SERVER = os.environ.get('VAULT_SERVER')
 ROLE_ID = os.environ.get('ROLE_ID')
 SECRET_ID = os.environ.get('SECRET_ID')
 CONFIG_SECRET_NAME = os.environ.get('CONFIG_SECRET_NAME', "")
