@@ -8,12 +8,17 @@ from gorrabot.api.gitlab.issues import get_issue, get_issues
 from gorrabot.api.gitlab.merge_requests import update_mr, get_merge_requests, get_mr_last_commit
 from gorrabot.api.gitlab.projects import get_project_name
 from gorrabot.api.utils import parse_api_date
+from gorrabot.config import config
 from gorrabot.constants import regex_dict, decision_issue_message_interval, inactivity_time
 
 
 def has_label(obj, label_name):
     return any(label['title'] == label_name
                for label in obj.get('labels', []))
+
+
+def has_flag(project_name):
+    return 'flags' in config['projects'][project_name]
 
 
 def get_related_issue_iid(mr: dict):
