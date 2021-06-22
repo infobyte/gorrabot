@@ -22,7 +22,7 @@ from gorrabot.api.gitlab.merge_requests import (
 )
 from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
-from gorrabot.config import config, DEBUG_MODE
+from gorrabot.config import config, DEBUG_MODE, read_config
 from gorrabot.constants import (
     NO_VALID_CHANGELOG_FILETYPE,
     MSG_BAD_BRANCH_NAME,
@@ -51,6 +51,12 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 root.addHandler(handler)
 logger = logging.getLogger(__name__)
+
+
+@app.route('/clear-cache')
+def clear_vault_cache():
+    read_config.cache_clear()
+    return "OK"
 
 
 @app.route('/status')
