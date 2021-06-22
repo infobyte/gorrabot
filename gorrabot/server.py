@@ -207,6 +207,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
 
     if not has_changed_changelog(project_id, iid, project_name, only_md=True):
         if has_changed_changelog(project_id, iid, project_name, only_md=False):
+            logger.info(f"Not a valid changelog file type: {changelog_filetype}")
             msg = NO_VALID_CHANGELOG_FILETYPE.format(changelog_filetype=changelog_filetype)
         else:
             msg = MSG_MISSING_CHANGELOG
