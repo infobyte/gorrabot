@@ -57,6 +57,7 @@ logger = logging.getLogger(__name__)
 def clear_vault_cache():
     if not DEBUG_MODE and request.headers.get('X-Gitlab-Token') != GITLAB_REQUEST_TOKEN:
         abort(403)
+    logger.info("Clearing Vault cache...")
     read_config.cache_clear()
     return "OK"
 
