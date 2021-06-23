@@ -38,7 +38,7 @@ from gorrabot.multi_main_repo_logic import (
     notify_unmerged_superior_mrs,
     add_multiple_merge_requests_label_if_needed
 )
-from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label
+from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag
 
 app = Flask(__name__)
 
@@ -190,10 +190,7 @@ def handle_mr(mr_json: dict) -> str:
 
 def check_status(mr_json: dict, project_name: str) -> NoReturn:
     if (
-            has_label(mr_json, GitlabLabels.NO_CHANGELOG) or
-            ('flags' in config['projects'][project_name] and
-             "NO_CHANGELOG" in [flag.upper() for flag in config['projects'][project_name]['flags']]
-             )
+            has_label(mr_json, GitlabLabels.NO_CHANGELOG) or has_flag(project_name, "NO_CHANGELOG")
     ):
         logger.info('Ignoring MR Changelog')
         send_debug_message('Ignoring MR Changelog')
@@ -226,8 +223,7 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     if (
             all([not label.startswith("priority::") for label in labels]) and not
             (
-                'flags' in config['projects'][project_name] and
-                "NO_PRIORITY" in [flag.upper() for flag in config['projects'][project_name]['flags']]
+                has_flag(project_name, "NO_PRIORITY")
             )
     ):
         logger.info("No priority label found")
@@ -235,8 +231,7 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     if (
             all([not label.startswith("severity::") for label in labels]) and not
             (
-                'flags' in config['projects'][project_name] and
-                "NO_SEVERITY" in [flag.upper() for flag in config['projects'][project_name]['flags']]
+                has_flag(project_name, "NO_SEVERITY")
             )
     ):
         logger.info("No severity label found")
