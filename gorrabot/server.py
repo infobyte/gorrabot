@@ -190,10 +190,7 @@ def handle_mr(mr_json: dict) -> str:
 
 def check_status(mr_json: dict, project_name: str) -> NoReturn:
     if (
-            has_label(mr_json, GitlabLabels.NO_CHANGELOG) or
-            (has_flag(project_name) and
-             "NO_CHANGELOG" in [flag.upper() for flag in config['projects'][project_name]['flags']]
-             )
+            has_label(mr_json, GitlabLabels.NO_CHANGELOG) or has_flag(project_name, "NO_CHANGELOG")
     ):
         logger.info('Ignoring MR Changelog')
         send_debug_message('Ignoring MR Changelog')
@@ -226,8 +223,7 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     if (
             all([not label.startswith("priority::") for label in labels]) and not
             (
-                has_flag(project_name) and
-                "NO_PRIORITY" in [flag.upper() for flag in config['projects'][project_name]['flags']]
+                has_flag(project_name, "NO_PRIORITY")
             )
     ):
         logger.info("No priority label found")
@@ -235,8 +231,7 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
     if (
             all([not label.startswith("severity::") for label in labels]) and not
             (
-                has_flag(project_name) and
-                "NO_SEVERITY" in [flag.upper() for flag in config['projects'][project_name]['flags']]
+                has_flag(project_name, "NO_SEVERITY")
             )
     ):
         logger.info("No severity label found")

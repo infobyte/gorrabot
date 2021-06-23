@@ -1,4 +1,5 @@
 import datetime
+import logging
 from typing import List
 import re
 
@@ -11,14 +12,26 @@ from gorrabot.api.utils import parse_api_date
 from gorrabot.config import config
 from gorrabot.constants import regex_dict, decision_issue_message_interval, inactivity_time
 
+logger = logging.getLogger(__name__)
+
 
 def has_label(obj, label_name):
     return any(label['title'] == label_name
                for label in obj.get('labels', []))
 
 
-def has_flag(project_name):
-    return 'flags' in config['projects'][project_name]
+def has_flag(project_name, passed_flag):
+    has_flag_attr = 'flags' in config['projects'][project_name]
+    param_list = ['NO_CHANGELOG', 'NO_PRIORITY', 'NO_SEVERITY']
+    has_passed_flag = False
+
+    if passed_flag in param_list:
+        selected_flag = param_list[param_list.index(passed_flag)]
+        has_passed_flag = selected_flag in [flag.upper() for flag in config['projects'][project_name]['flags']]
+    else:
+        logger.warning('Invalid passed flag. Proceeding to verify if there is changelog')
+
+    return has_flag_attr and has_passed_flag
 
 
 def get_related_issue_iid(mr: dict):
