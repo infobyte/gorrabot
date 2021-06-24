@@ -25,13 +25,15 @@ def has_flag(project_name, passed_flag):
     param_list = ['NO_CHANGELOG', 'NO_PRIORITY', 'NO_SEVERITY']
     has_passed_flag = False
 
+    if not has_flag_attr:
+        logger.warning("'Flags' attribute not detected. Proceeding to verify there is changelog")
+        return has_flag_attr and has_passed_flag
+
     if passed_flag in param_list:
         selected_flag = param_list[param_list.index(passed_flag)]
         has_passed_flag = selected_flag in [flag.upper() for flag in config['projects'][project_name]['flags']]
     else:
-        logger.warning('Invalid passed flag. Proceeding to verify if there is changelog')
-
-    return has_flag_attr and has_passed_flag
+        logger.warning('Passed flag was not recognized. Proceeding to verify there is changelog')
 
 
 def get_related_issue_iid(mr: dict):
