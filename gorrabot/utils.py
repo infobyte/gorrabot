@@ -35,6 +35,8 @@ def has_flag(project_name, passed_flag):
     else:
         logger.warning('Passed flag was not recognized. Proceeding to verify there is changelog')
 
+    return has_flag_attr and has_passed_flag
+
 
 def get_related_issue_iid(mr: dict):
     branch = mr['source_branch'] if "source_branch" in mr else mr["object_attributes"]["source_branch"]
