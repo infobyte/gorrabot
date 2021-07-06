@@ -174,7 +174,7 @@ def get_push_info(push, branch_name):
     push_info = {
         "project_name": project_name,
         "branch_regex": branch_regex,
-        "issue_id": issue_iid,
+        "issue_iid": issue_iid,
         "project_id": project_id,
         "messages": messages
     }
