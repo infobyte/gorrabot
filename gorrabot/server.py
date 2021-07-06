@@ -38,7 +38,7 @@ from gorrabot.multi_main_repo_logic import (
     notify_unmerged_superior_mrs,
     add_multiple_merge_requests_label_if_needed
 )
-from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag
+from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag, get_push_info
 
 app = Flask(__name__)
 
@@ -222,12 +222,15 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
 
 
 def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
-    project_name = push["repository"]["name"]
-    branch_regex = regex_dict[project_name]
-    issue_iid = re.match(branch_regex, branch_name).group("iid")
-    project_id = push['project_id']
+
+    push_info = get_push_info(push, branch_name)
+
+    project_id = push_info['project_id']
+    project_name = push_info['project_name']
+    messages = push_info['messages']
+    issue_iid = push_info['issue_iid']
     issue = get_issue(project_id, issue_iid)
-    messages = []
+
     labels: List[str] = issue['labels']
     if (
             all([not label.startswith("priority::") for label in labels]) and not
