@@ -11,7 +11,9 @@ from gorrabot.api.constants import gitlab_to_slack_user_dict
 from gorrabot.api.gitlab import (
     GITLAB_REQUEST_TOKEN,
     GITLAB_SELF_USERNAME,
-    GitlabLabels
+    GitlabLabels,
+    GITLAB_API_PREFIX,
+    gitlab_session
 )
 from gorrabot.api.gitlab.issues import get_issue, update_issue
 from gorrabot.api.gitlab.merge_requests import (
@@ -31,7 +33,9 @@ from gorrabot.constants import (
     regex_dict, MSG_WITHOUT_PRIORITY, MSG_WITHOUT_SEVERITY, MSG_WITHOUT_WEIGHT, MSG_NOTIFICATION_PREFIX_WITH_USER,
     MSG_NOTIFICATION_PREFIX_WITHOUT_USER,
     MSG_WITHOUT_MILESTONE,
-    BACKLOG_MILESTONE, MSG_BACKLOG_MILESTONE
+    BACKLOG_MILESTONE,
+    MSG_BACKLOG_MILESTONE,
+    MSG_WITHOUT_ITERATION
 )
 from gorrabot.multi_main_repo_logic import (
     handle_multi_main_push,
@@ -221,15 +225,32 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         mr_attributes['work_in_progress'] = True
 
 
+def get_iteration(push: dict, branch_name: str) -> NoReturn:
+    """ Checks if issue has an iteration """
+
+    push_info = get_push_info(push, branch_name)
+
+    project_id = push_info['project_id']
+    issue_iid = push_info['issue_iid']
+
+    url = f'{GITLAB_API_PREFIX}/projects/{project_id}/issues/{issue_iid}/resource_iteration_events'
+    iteration_info = gitlab_session.get(url).json()
+
+    iteration = iteration_info[0].get('iteration') \
+                if iteration_info else None
+
+    return iteration
+
+
 def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
 
     push_info = get_push_info(push, branch_name)
 
     project_id = push_info['project_id']
     project_name = push_info['project_name']
-    messages = push_info['messages']
     issue_iid = push_info['issue_iid']
     issue = get_issue(project_id, issue_iid)
+    messages = []
 
     labels: List[str] = issue['labels']
     if (
@@ -260,6 +281,11 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
         if milestone['title'] in BACKLOG_MILESTONE:
             logger.info("Backlog detected as milestone")
             messages.append(MSG_BACKLOG_MILESTONE)
+
+    iteration = get_iteration(push, branch_name)
+    if iteration is None:
+        logger.info("Iteration not found")
+        messages.append(MSG_WITHOUT_ITERATION)
 
     if len(messages) > 0:
         error_message_list = '\n    * '.join([''] + messages)

@@ -72,6 +72,7 @@ MSG_WITHOUT_PRIORITY = "No tiene `priority`"
 MSG_WITHOUT_SEVERITY = "No tiene `severity`"
 MSG_WITHOUT_WEIGHT = "No tiene peso!"
 MSG_WITHOUT_MILESTONE = "No tiene milestone!"
+MSG_WITHOUT_ITERATION = "No tiene iteration!"
 MSG_NOTIFICATION_PREFIX_WITH_USER = "@{user} commiteo a la rama {branch} ({project_name}), pero esa rama:"
 MSG_NOTIFICATION_PREFIX_WITHOUT_USER = "{user} (No lo encontre en mi DB) commiteo a la rama {branch} ({project_name})" \
                                        ", pero esa rama:"
