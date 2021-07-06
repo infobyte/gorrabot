@@ -226,7 +226,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
 
 
 def get_iteration(push: dict, branch_name: str) -> NoReturn:
-    """ Checks if issue has an iteration """
+    """ Gets an iteration from a given issue """
 
     push_info = get_push_info(push, branch_name)
 
