@@ -138,7 +138,7 @@ def handle_push(push: dict) -> str:
             logger.info("dev or master branch")
             send_debug_message("dev or master branch")
     else:
-        check_labels_weight_and_milestone(push, branch_name)
+        check_required_attributes(push, branch_name)
         if 'multi-branch' in config['projects'][project_name]:
             return handle_multi_main_push(push, prefix)
 
@@ -242,7 +242,11 @@ def get_iteration(push: dict, branch_name: str) -> NoReturn:
     return iteration
 
 
-def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
+def check_required_attributes(push: dict, branch_name: str) -> NoReturn:
+    """
+        Verifies if labels, weight, milestone and iteration exist in
+        GitLab's PR response.
+    """
 
     push_info = get_push_info(push, branch_name)
 
