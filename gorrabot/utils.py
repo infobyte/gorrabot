@@ -169,14 +169,12 @@ def get_push_info(push, branch_name):
     branch_regex = regex_dict[project_name]
     issue_iid = re.match(branch_regex, branch_name).group("iid")
     project_id = push['project_id']
-    messages = []
 
     push_info = {
         "project_name": project_name,
         "branch_regex": branch_regex,
         "issue_iid": issue_iid,
-        "project_id": project_id,
-        "messages": messages
+        "project_id": project_id
     }
 
     return push_info
