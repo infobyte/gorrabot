@@ -225,7 +225,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         mr_attributes['work_in_progress'] = True
 
 
-def get_iteration(push: dict, branch_name: str) -> NoReturn:
+def get_iteration(push: dict, branch_name: str) -> dict:
     """ Gets an iteration from a given issue """
 
     push_info = get_push_info(push, branch_name)
