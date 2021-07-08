@@ -236,6 +236,9 @@ def get_iteration(push: dict, branch_name: str) -> dict:
     url = f'{GITLAB_API_PREFIX}/projects/{project_id}/issues/{issue_iid}/resource_iteration_events'
     iteration_info = gitlab_session.get(url).json()
 
+    # In order to get the last-used iteration, the list is reversed.
+    iteration_info.reverse()
+
     # NOTE: first element is selected because of GitLab's list response format.
     iteration = iteration_info[0].get('iteration') \
                 if iteration_info else None
