@@ -23,6 +23,7 @@ from gorrabot.api.gitlab.merge_requests import (
     comment_mr
 )
 from gorrabot.api.gitlab.usernames import get_username
+from gorrabot.api.gitlab.utils import paginated_get
 from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
 from gorrabot.config import config, DEBUG_MODE, read_config
 from gorrabot.constants import (
@@ -234,7 +235,7 @@ def get_iteration(push: dict, branch_name: str) -> dict:
     issue_iid = push_info['issue_iid']
 
     url = f'{GITLAB_API_PREFIX}/projects/{project_id}/issues/{issue_iid}/resource_iteration_events'
-    iteration_info = gitlab_session.get(url).json()
+    iteration_info = paginated_get(url)
 
     # In order to get the last-used iteration, the list is reversed.
     iteration_info.reverse()
