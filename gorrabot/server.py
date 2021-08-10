@@ -11,7 +11,9 @@ from gorrabot.api.constants import gitlab_to_slack_user_dict
 from gorrabot.api.gitlab import (
     GITLAB_REQUEST_TOKEN,
     GITLAB_SELF_USERNAME,
-    GitlabLabels
+    GitlabLabels,
+    GITLAB_API_PREFIX,
+    gitlab_session
 )
 from gorrabot.api.gitlab.issues import get_issue, update_issue
 from gorrabot.api.gitlab.merge_requests import (
@@ -21,6 +23,7 @@ from gorrabot.api.gitlab.merge_requests import (
     comment_mr
 )
 from gorrabot.api.gitlab.usernames import get_username
+from gorrabot.api.gitlab.utils import paginated_get
 from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
 from gorrabot.config import config, DEBUG_MODE, read_config
 from gorrabot.constants import (
@@ -31,14 +34,16 @@ from gorrabot.constants import (
     regex_dict, MSG_WITHOUT_PRIORITY, MSG_WITHOUT_SEVERITY, MSG_WITHOUT_WEIGHT, MSG_NOTIFICATION_PREFIX_WITH_USER,
     MSG_NOTIFICATION_PREFIX_WITHOUT_USER,
     MSG_WITHOUT_MILESTONE,
-    BACKLOG_MILESTONE, MSG_BACKLOG_MILESTONE
+    BACKLOG_MILESTONE,
+    MSG_BACKLOG_MILESTONE,
+    MSG_WITHOUT_ITERATION
 )
 from gorrabot.multi_main_repo_logic import (
     handle_multi_main_push,
     notify_unmerged_superior_mrs,
     add_multiple_merge_requests_label_if_needed
 )
-from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag
+from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag, get_push_info
 
 app = Flask(__name__)
 
@@ -134,7 +139,7 @@ def handle_push(push: dict) -> str:
             logger.info("dev or master branch")
             send_debug_message("dev or master branch")
     else:
-        check_labels_weight_and_milestone(push, branch_name)
+        check_required_attributes(push, branch_name)
         if 'multi-branch' in config['projects'][project_name]:
             return handle_multi_main_push(push, prefix)
 
@@ -221,13 +226,41 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         mr_attributes['work_in_progress'] = True
 
 
-def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
-    project_name = push["repository"]["name"]
-    branch_regex = regex_dict[project_name]
-    issue_iid = re.match(branch_regex, branch_name).group("iid")
-    project_id = push['project_id']
+def get_iteration(push: dict, branch_name: str) -> dict:
+    """ Gets an iteration from a given issue """
+
+    push_info = get_push_info(push, branch_name)
+
+    project_id = push_info['project_id']
+    issue_iid = push_info['issue_iid']
+
+    url = f'{GITLAB_API_PREFIX}/projects/{project_id}/issues/{issue_iid}/resource_iteration_events'
+    iteration_info = paginated_get(url)
+
+    # In order to get the last-used iteration, the list is reversed.
+    iteration_info.reverse()
+
+    # NOTE: first element is selected because of GitLab's list response format.
+    iteration = iteration_info[0].get('iteration') \
+                if iteration_info else None
+
+    return iteration
+
+
+def check_required_attributes(push: dict, branch_name: str) -> NoReturn:
+    """
+        Verifies if labels, weight, milestone and iteration exist in
+        GitLab's PR response.
+    """
+
+    push_info = get_push_info(push, branch_name)
+
+    project_id = push_info['project_id']
+    project_name = push_info['project_name']
+    issue_iid = push_info['issue_iid']
     issue = get_issue(project_id, issue_iid)
     messages = []
+
     labels: List[str] = issue['labels']
     if (
             all([not label.startswith("priority::") for label in labels]) and not
@@ -257,6 +290,11 @@ def check_labels_weight_and_milestone(push: dict, branch_name: str) -> NoReturn:
         if milestone['title'] in BACKLOG_MILESTONE:
             logger.info("Backlog detected as milestone")
             messages.append(MSG_BACKLOG_MILESTONE)
+
+    iteration = get_iteration(push, branch_name)
+    if iteration is None:
+        logger.info("Iteration not found")
+        messages.append(MSG_WITHOUT_ITERATION)
 
     if len(messages) > 0:
         error_message_list = '\n    * '.join([''] + messages)
