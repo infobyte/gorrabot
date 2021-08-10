@@ -161,3 +161,20 @@ def get_staled_merge_requests(project_id: int, wip=None):
             created_at = parse_api_date(last_commit['created_at'])
         if datetime.datetime.utcnow() - created_at > inactivity_time:
             yield mr
+
+
+def get_push_info(push, branch_name):
+    """ Gets several attributes from the PR's json """
+    project_name = push["repository"]["name"]
+    branch_regex = regex_dict[project_name]
+    issue_iid = re.match(branch_regex, branch_name).group("iid")
+    project_id = push['project_id']
+
+    push_info = {
+        "project_name": project_name,
+        "branch_regex": branch_regex,
+        "issue_iid": issue_iid,
+        "project_id": project_id
+    }
+
+    return push_info
