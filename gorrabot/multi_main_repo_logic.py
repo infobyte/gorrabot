@@ -23,8 +23,8 @@ logger = getLogger(__name__)
 
 def get_previous_or_next(project_name: str, branch_name: str, previous: bool) -> List[str]:
     """
-    This will get the branch (e.g. tkt_***REMOVED***_XXXX_extra), and check if the previous branches MR exists
-    (e.g. tkt_***REMOVED***_XXXX_extra; not tkt_***REMOVED***_XXXX_extra)
+    This will get the branch (e.g. tkt_previous_XXXX_extra), and check if the previous branches MR exists
+    (e.g. tkt_previous_XXXX_extra; not tkt_next_XXXX_extra)
     """
     parent_branches: List[str] = config['projects'][project_name]['multi-branch']
     main_branch = re.match(regex_dict[project_name], branch_name).group('base')
@@ -34,7 +34,7 @@ def get_previous_or_next(project_name: str, branch_name: str, previous: bool) ->
         others_parent_main_branches = parent_branches[parent_branches.index(main_branch) + 1:]
     send_debug_message(f"{others_parent_main_branches}")
     return [
-        branch_name.replace(main_branch, others_parent_main_branch)  # "tkt_***REMOVED***_XXXX_extra".replace('***REMOVED***','***REMOVED***')
+        branch_name.replace(main_branch, others_parent_main_branch)  # "tkt_next_XXXX_extra".replace('next','previous')
         for others_parent_main_branch in others_parent_main_branches
     ]
 
@@ -156,7 +156,7 @@ Created with <3 by @gorrabot, based on merge request
 
 
 def notify_unmerged_superior_mrs(mr_json: dict, project_name: str):
-    """Warn the user who merged mr if there also are ***REMOVED*** or ***REMOVED*** merge
+    """Warn the user who merged mr if there also are upper merge
     requests for the same issue."""
     mr = mr_json["object_attributes"]
     assert mr['state'] == 'merged'

@@ -5,8 +5,8 @@ from . import VAULT_SERVER, ROLE_ID, SECRET_ID
 ERROR_MESSAGE = "VaultError: {}"
 
 try:
-    ***REMOVED*** = hvac.Client(url=VAULT_SERVER)
-    ***REMOVED***.auth.approle.login(role_id=ROLE_ID, secret_id=SECRET_ID)
+    client = hvac.Client(url=VAULT_SERVER)
+    client.auth.approle.login(role_id=ROLE_ID, secret_id=SECRET_ID)
 except InvalidRequest as e:
     message = f"Cannot connect to Vault server, {e}"
     print(ERROR_MESSAGE.format(message))
@@ -22,8 +22,8 @@ def get_secret(secret_name):
     :rtype: str if secrets exists, Exception otherwise
     """
     try:
-        if ***REMOVED*** and ***REMOVED***.is_authenticated():
-            secret_response = ***REMOVED***.secrets.kv.v2.read_secret_version(
+        if client and client.is_authenticated():
+            secret_response = client.secrets.kv.v2.read_secret_version(
                 mount_point='secrets',
                 path='gorrabot'
             )

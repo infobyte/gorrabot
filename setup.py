@@ -32,8 +32,8 @@ history = readme
 requirements = ['requests', 'flask', 'gunicorn', 'pyyaml']
 
 setup(
-    author="Matias Lang",
-    author_email='***REMOVED***@infobytesec.com',
+    author="Faradaysec",
+    author_email='devel@faradaysec.com',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

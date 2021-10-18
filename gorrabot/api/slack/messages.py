@@ -2,7 +2,7 @@ import os
 
 from gorrabot.api.gitlab.projects import get_project_name
 from gorrabot.api.slack import slack_session, SLACK_API_PREFIX
-from gorrabot.config import config, DEBUG_MODE
+from gorrabot.config import config, DEBUG_MODE, NOTIFY_DEFAULT_CHANNEL, NOTIFY_DEBUG_CHANNEL
 
 
 def check_can_send_slack_messages(project_id=None):
@@ -57,10 +57,10 @@ def send_message_to_channel(slack_channel: str, text: str, project_id=None):
 
 
 def send_message_to_error_channel(text: str, project_id: int):
-    if not DEBUG_MODE:
-        send_message_to_channel("#***REMOVED***-notification", text, project_id)
+    if not DEBUG_MODE and NOTIFY_DEFAULT_CHANNEL:
+        send_message_to_channel(NOTIFY_DEFAULT_CHANNEL, text, project_id)
 
 
 def send_debug_message(text: str):
-    if 'DEBUG' in os.environ:
-        send_message_to_channel("***REMOVED***", text)  # ***REMOVED*** ID
+    if 'DEBUG' in os.environ and NOTIFY_DEBUG_CHANNEL:
+        send_message_to_channel(NOTIFY_DEBUG_CHANNEL, text)  # erich ID

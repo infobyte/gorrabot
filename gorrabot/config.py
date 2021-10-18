@@ -8,6 +8,8 @@ from gorrabot.timer import GorrabotTimer
 
 
 DEBUG_MODE = os.environ.get('GORRABOT_DEBUG')
+NOTIFY_DEFAULT_CHANNEL = os.environ.get('NOTIFY_DEFAULT_CHANNEL')
+NOTIFY_DEBUG_CHANNEL = os.environ.get('NOTIFY_DEBUG_CHANNEL')
 
 
 def load_yaml(data):  # TODO I DO NOT LIKE THIS HERE

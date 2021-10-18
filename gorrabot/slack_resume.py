@@ -100,7 +100,7 @@ def main():
             text += "No tenes MR en WIP/Draft estancados :ditto:!\n"
         if len(notify_dict[username][STALE_NO_WIP]) > 0:
             text += ":warning: Algunos de tus MR sin WIP/Draft estan estancados, si creés que alguno tiene todo lo necesario " \
-                    "para ser revisado, pedí approves en ***REMOVED***-dev. También fijate si se puede aclarar mejor qué se " \
+                    "para ser revisado, pedí approves. También fijate si se puede aclarar mejor qué se " \
                     "hizo y por qué, para hacerle la tarea más fácil a quien haga review de esto:\n"
             text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_NO_WIP]])
             send = True

@@ -24,7 +24,7 @@ performed to it.
 ## Issue state changing based on MR status
 
 Get the issue related to a merge request by inspecting its source branch name
-(e.g `tkt_***REMOVED***_1234_some_description`). Then, when the status of the MR is
+(e.g `tkt_community_1234_some_description`). Then, when the status of the MR is
 updated, also update the labels and status of the related issue.
 
 Gorrabot also adds a `Closes #1234` text in the description, so GitLab closes
@@ -62,7 +62,7 @@ When creating a merge request from the gitlab web, by default it derives its
 title from the source branch name. This is useful in many projects, but in
 Faraday it can be annoying because of our branch naming conventions.
 
-For example, it wouldn't be useful to have a merge request titled `Tkt ***REMOVED***
+For example, it wouldn't be useful to have a merge request titled `Tkt community
 1234 some description`. A more concise title would be more helpful. If we
 wanted, we could know the related issue and target version just by looking at
 the source and target branches of the MR.
@@ -73,19 +73,19 @@ There is no need to set it to WIP.
 
 ## Automatic creation of upper versions MRs
 
-When a MR of a ***REMOVED*** feature also needs changes in ***REMOVED***, the suggested way to
-proceed is to create a branch of ***REMOVED***/dev with both the changes of the ***REMOVED*** MR
-and the speficic changes to ***REMOVED***. Then, open another merge request with target
-branch ***REMOVED***/dev.
+When a community feature MR also needs changes in professional, the suggested way to
+proceed is to create a branch of professional/dev with both the changes of the community MR
+and the specific changes to professional. Then, open another merge request with target
+branch professional/dev.
 
-Creating another merge request for the ***REMOVED*** feature is tedious, so when the
-user pushes the ***REMOVED*** branch, Gorrabot will detect this is an "upper version
-MR". Then, it will create a new MR with the same content as the ***REMOVED*** MR, but
-with a `(***REMOVED*** edition)` added in the title to properly differentiate both MRs.
+Creating another merge request for the professional feature is tedious, so when the
+user pushes the professional branch, Gorrabot will detect this is an "upper version
+MR". Then, it will create a new MR with the same content as the community MR, but
+with a `(professional edition)` added in the title to properly differentiate both MRs.
 
-The same thing happens when a ***REMOVED*** branch conflicts with ***REMOVED***.
+The same thing happens when a professional branch conflicts with upper branches (if exists).
 
-Gorrabot will also notify the user the MR was created. And when the ***REMOVED*** MR is
+Gorrabot will also notify the user the MR was created. And when the community MR is
 merged, it will notify the user who merged it so they don't forget about
 merging the upper version MR too.
 
@@ -114,8 +114,8 @@ decision is expected to resolve the issue.
 
 In the case of gitlab users, you should reference them with an @, as the common
 gitlab behaviour. In the case of slack users, based on slack API, you should 
-use the email username. E.g. for `***REMOVED***@***REMOVED***.com` the id is `***REMOVED***` not 
-Eric Horvat, or any other display name.
+use the email username. E.g. for `uname@company.com` the id is `uname` not 
+User Name, or any other display name.
 
 # Summary of special labels
 
@@ -162,4 +162,4 @@ benefits. Sacrificing simplicity is bad.
 
 The goal of this project is to help us with some things related to our
 development process, not to our code base itself. For this things,
-having a continuous ***REMOVED*** seems to be a better choice.
+having a continuous integration seems to be a better choice.

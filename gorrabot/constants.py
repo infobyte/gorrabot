@@ -64,7 +64,7 @@ recomiendo proceder con alguna de estas acciones:
   gorra-poderes así que prefiero que no se abuse de esta opción
 """
 MSG_MR_OLD_MEMBER = (
-    '@***REMOVED***: Este merge request no está listo y está asignado a un usuario '
+    'Este merge request no está listo y está asignado a un usuario '
     'que ya no forma parte del equipo. Habría que cerrarlo o reasignárselo a '
     'alguien más'
 )
