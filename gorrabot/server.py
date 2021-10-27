@@ -119,7 +119,8 @@ def handle_push(push: dict) -> str:
     if project_name not in config['projects']:
         send_message_to_error_channel(
             text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration",
-            project_id=config['projects'][project_name]['id']
+            project_id=None,
+            force_send=True
         )
         return flask.abort(400, "project not in the configuration")
 
@@ -160,7 +161,8 @@ def handle_mr(mr_json: dict) -> str:
         send_debug_message('Project not in the configuration')
         send_message_to_error_channel(
             text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration",
-            project_id=config['projects'][project_name]['id']
+            project_id=None,
+            force_send=True
         )
         return flask.abort(400, "Project not in the configuration")
 

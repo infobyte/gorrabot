@@ -39,11 +39,11 @@ def send_message_to_user(slack_user: str, text: str, slack_users_data: dict):
         return res
 
 
-def send_message_to_channel(slack_channel: str, text: str, project_id=None):
+def send_message_to_channel(slack_channel: str, text: str, project_id=None, force_send=False):
 
     can_send_message = check_can_send_slack_messages(project_id)
 
-    if not can_send_message:
+    if (not force_send) and (not can_send_message):
         # project cannot send message to Slack
         return
 
@@ -56,9 +56,9 @@ def send_message_to_channel(slack_channel: str, text: str, project_id=None):
     return res
 
 
-def send_message_to_error_channel(text: str, project_id: int):
+def send_message_to_error_channel(text: str, project_id: int, force_send=False):
     if not DEBUG_MODE and NOTIFY_DEFAULT_CHANNEL:
-        send_message_to_channel(NOTIFY_DEFAULT_CHANNEL, text, project_id)
+        send_message_to_channel(NOTIFY_DEFAULT_CHANNEL, text, project_id, force_send=True)
 
 
 def send_debug_message(text: str):
