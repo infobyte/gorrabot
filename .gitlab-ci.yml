@@ -20,8 +20,6 @@ deploy:
         - pip install awsebcli
     # Run deployment using EB CLI deploy on master branch
     script:
-        - git checkout test_aws
-        - git pull
         - eb deploy gorrabot-dev
     # Ensure to run deployment only on master branch
     only:
