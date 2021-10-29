@@ -23,7 +23,7 @@ deploy:
         - eb deploy gorrabot-dev
     # Ensure to run deployment only on master branch
     rules:
-      - if: $CI_COMMIT_REF_NAME == master
+      - if: $CI_COMMIT_REF_NAME == "master"
         when: on_success
     tags:
         - faradaytests
