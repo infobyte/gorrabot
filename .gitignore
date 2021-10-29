@@ -93,3 +93,6 @@ ENV/
 
 # Pycharm IDE
 .idea/
+
+GORRABOT_CONFIG_FILE.yaml
+
