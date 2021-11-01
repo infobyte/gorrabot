@@ -129,7 +129,7 @@ def handle_push(push: dict) -> str:
 
     if not re.match(branch_regex, branch_name):
         regex_branch_exceptions = config['projects'][project_name].get('regex_branch_exceptions', [])
-        if not re.match(r"^((dev|master)|(.*/(dev|master)))$", branch_name) \
+        if not re.match(r"^((dev|master|staging)|(.*/(dev|master|staging)))$", branch_name) \
                 and branch_name not in regex_branch_exceptions:
             logger.warning("Branch does not match with regex")
             send_debug_message("Branch does not match with regex")
@@ -137,8 +137,8 @@ def handle_push(push: dict) -> str:
                                           "expected regex format",
                                           project_id=config['projects'][project_name]['id'])
         else:
-            logger.info("dev or master branch")
-            send_debug_message("dev or master branch")
+            logger.info("dev, master or staging branch")
+            send_debug_message("dev, master or staging branch")
     else:
         check_required_attributes(push, branch_name)
         if 'multi-branch' in config['projects'][project_name]:
