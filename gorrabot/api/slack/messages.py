@@ -15,8 +15,8 @@ def check_can_send_slack_messages(project_id=None):
     project_name = get_project_name(project_id)
 
     send_message_to_slack = False
-    if project_name in config['projects']:
-        send_message_to_slack = config['projects'][project_name].get('send_message_to_slack', True)
+    if project_name in config()['projects']:
+        send_message_to_slack = config()['projects'][project_name].get('send_message_to_slack', True)
 
     return send_message_to_slack
 

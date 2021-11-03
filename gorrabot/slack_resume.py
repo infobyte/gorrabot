@@ -16,9 +16,9 @@ from gorrabot.config import config
 
 DRY_RUN = os.environ.get("DRY_RUN", None)
 
-REPORT_USERS = config['gitlab'].get('REPORT_USERS', [])
+REPORT_USERS = config()['gitlab'].get('REPORT_USERS', [])
 
-project_ids = [int(config['projects'][project_name]['id']) for project_name in config['projects']]
+project_ids = [int(config()['projects'][project_name]['id']) for project_name in config()['projects']]
 
 """
 The idea of this script is identify who is blocking other dev and notify about this:
