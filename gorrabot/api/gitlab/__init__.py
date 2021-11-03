@@ -14,9 +14,9 @@ gitlab_session.headers['Private-Token'] = GITLAB_TOKEN
 
 
 class GitlabLabels:
-    DONT_RUSH_ME = config['gitlab']['labels'].get('DONT_RUSH_ME', 'Do not rush me')
-    NO_CHANGELOG = config['gitlab']['labels'].get('NO_CHANGELOG', 'No changelog')
-    DONT_TRACK = config['gitlab']['labels'].get('DONT_TRACK', 'Do not track')
-    MULTIPLE_MR = config['gitlab']['labels'].get('MULTIPLE_MR', 'Multiple MR')
-    TEST = config['gitlab']['labels'].get('TEST', 'Test')
-    ACCEPTED = config['gitlab']['labels'].get('ACCEPTED', 'Accepted')
+    DONT_RUSH_ME = config()['gitlab']['labels'].get('DONT_RUSH_ME', 'Do not rush me')
+    NO_CHANGELOG = config()['gitlab']['labels'].get('NO_CHANGELOG', 'No changelog')
+    DONT_TRACK = config()['gitlab']['labels'].get('DONT_TRACK', 'Do not track')
+    MULTIPLE_MR = config()['gitlab']['labels'].get('MULTIPLE_MR', 'Multiple MR')
+    TEST = config()['gitlab']['labels'].get('TEST', 'Test')
+    ACCEPTED = config()['gitlab']['labels'].get('ACCEPTED', 'Accepted')

@@ -16,7 +16,7 @@ from gorrabot.config import config
     OLD_MEMBERS,
     stale_mr_message_interval,
 )"""
-project_ids = [int(config['projects'][project_name]['id']) for project_name in config['projects']]
+project_ids = [int(config()['projects'][project_name]['id']) for project_name in config()['projects']]
 
 
 def main():

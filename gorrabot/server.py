@@ -25,7 +25,7 @@ from gorrabot.api.gitlab.merge_requests import (
 from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.api.gitlab.utils import paginated_get
 from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
-from gorrabot.config import config, DEBUG_MODE, read_config
+from gorrabot.config import config, DEBUG_MODE, config
 from gorrabot.constants import (
     NO_VALID_CHANGELOG_FILETYPE,
     MSG_BAD_BRANCH_NAME,
@@ -63,7 +63,7 @@ def clear_vault_cache():
     if not DEBUG_MODE and request.headers.get('X-Gitlab-Token') != GITLAB_REQUEST_TOKEN:
         abort(403)
     logger.info("Clearing Vault cache...")
-    read_config.cache_clear()
+    config.cache_clear()
     return "OK"
 
 
@@ -116,7 +116,7 @@ def handle_push(push: dict) -> str:
         return msg
 
     project_name = push["repository"]["name"]
-    if project_name not in config['projects']:
+    if project_name not in config()['projects']:
         send_message_to_error_channel(
             text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration",
             project_id=None,
@@ -128,20 +128,20 @@ def handle_push(push: dict) -> str:
     branch_name = push['ref'][len(prefix):]
 
     if not re.match(branch_regex, branch_name):
-        regex_branch_exceptions = config['projects'][project_name].get('regex_branch_exceptions', [])
+        regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
         if not re.match(r"^((dev|master|staging)|(.*/(dev|master|staging)))$", branch_name) \
                 and branch_name not in regex_branch_exceptions:
             logger.warning("Branch does not match with regex")
             send_debug_message("Branch does not match with regex")
             send_message_to_error_channel(f"Unexpected push to `{project_name}`, branch `{branch_name}` do not follow "
                                           "expected regex format",
-                                          project_id=config['projects'][project_name]['id'])
+                                          project_id=config()['projects'][project_name]['id'])
         else:
             logger.info("dev, master or staging branch")
             send_debug_message("dev, master or staging branch")
     else:
         check_required_attributes(push, branch_name)
-        if 'multi-branch' in config['projects'][project_name]:
+        if 'multi-branch' in config()['projects'][project_name]:
             return handle_multi_main_push(push, prefix)
 
     return 'OK'
@@ -156,7 +156,7 @@ def handle_mr(mr_json: dict) -> str:
     mr_attributes = mr_json['object_attributes']
     project_name = mr_json["repository"]["name"]
 
-    if project_name not in config['projects']:
+    if project_name not in config()['projects']:
         logger.warning('Project not in the configuration')
         send_debug_message('Project not in the configuration')
         send_message_to_error_channel(
@@ -170,12 +170,12 @@ def handle_mr(mr_json: dict) -> str:
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
 
     branch_regex = regex_dict[mr_json['repository']['name']]
-    regex_branch_exceptions = config['projects'][project_name].get('regex_branch_exceptions', [])
+    regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
     if not re.match(branch_regex, mr_attributes['source_branch']) \
        and mr_attributes['source_branch'] not in regex_branch_exceptions:
         logger.info("Branch do not match regex")
         send_debug_message("Branch do not match regex")
-        msg_bad_branch_name = MSG_BAD_BRANCH_NAME.format(main_branches=config['projects'][project_name]['multi-branch'])
+        msg_bad_branch_name = MSG_BAD_BRANCH_NAME.format(main_branches=config()['projects'][project_name]['multi-branch'])
         comment_mr(project_id, iid, f"@{username}: {msg_bad_branch_name}", can_be_duplicated=False)
 
     is_multi_main = is_multi_main_mr(mr_json)
@@ -215,8 +215,8 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
     username = get_username(mr_json)
 
-    changelog_filetype = config['projects'][project_name]['changelog_filetype'] \
-                         if 'changelog_filetype' in config['projects'][project_name] else '.md'
+    changelog_filetype = config()['projects'][project_name]['changelog_filetype'] \
+                         if 'changelog_filetype' in config()['projects'][project_name] else '.md'
 
     if not has_changed_changelog(project_id, iid, project_name, only_md=True):
         if has_changed_changelog(project_id, iid, project_name, only_md=False):
@@ -315,7 +315,7 @@ def check_required_attributes(push: dict, branch_name: str) -> NoReturn:
                                                                         )
 
         error_message = f"{error_message}{error_message_list}"
-        send_message_to_error_channel(error_message, project_id=config['projects'][project_name]['id'])
+        send_message_to_error_channel(error_message, project_id=config()['projects'][project_name]['id'])
 
 
 # @ehorvat: I believe this should be in a utils as it depends on gitlab
@@ -324,15 +324,15 @@ def has_changed_changelog(project_id: int, iid: int, project_name, only_md: bool
     changed_files = get_changed_files(changes)
     for filename in changed_files:
         if filename.startswith('CHANGELOG'):
-            valid_ext = config['projects'][project_name]['changelog_filetype'] \
-                        if 'changelog_filetype' in config['projects'][project_name] \
+            valid_ext = config()['projects'][project_name]['changelog_filetype'] \
+                        if 'changelog_filetype' in config()['projects'][project_name] \
                         else '.md'
             if not only_md or filename.endswith(valid_ext):
                 return True
             else:
-                if 'changelog_exceptions' in config['projects'][project_name]:
+                if 'changelog_exceptions' in config()['projects'][project_name]:
                     _, file_name = os.path.split(filename)
-                    if file_name in config['projects'][project_name]['changelog_exceptions']:
+                    if file_name in config()['projects'][project_name]['changelog_exceptions']:
                         return True
 
     return False
@@ -406,7 +406,7 @@ def check_issue_reference_in_description(mr_json: dict):
 
 
 def is_multi_main_mr(mr_json):
-    return 'multi-branch' in config['projects'][mr_json["repository"]["name"]]
+    return 'multi-branch' in config()['projects'][mr_json["repository"]["name"]]
 
 
 def main():
