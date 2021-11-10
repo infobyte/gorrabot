@@ -43,4 +43,4 @@ def config() -> dict:
 
 
 config()
-gorrabot_timer = GorrabotTimer(config.cache_clear, 1800).start()  # execute every 30 minutes
+gorrabot_timer = GorrabotTimer(config.cache_clear, 1800)  # execute every 30 minutes
