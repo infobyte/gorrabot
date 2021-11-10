@@ -4,6 +4,7 @@ import os
 import sys
 import json
 from collections import defaultdict
+import logging
 
 from gorrabot.api.constants import gitlab_to_slack_user, MAX_ISSUES_ACCEPTED
 from gorrabot.api.gitlab.issues import get_accepted_issues
@@ -12,7 +13,7 @@ from gorrabot.api.slack.messages import send_message_to_user, check_can_send_sla
 from gorrabot.api.slack.users import get_slack_user_data
 from gorrabot.constants import OLD_MEMBERS
 from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests
-from gorrabot.config import config
+from gorrabot.config import config, gorrabot_timer
 
 DRY_RUN = os.environ.get("DRY_RUN", None)
 
@@ -34,6 +35,15 @@ STALE_WIP = "stale_wip"
 STALE_NO_WIP = "stale_no_wip"
 WAITING_DECISION = "waiting-decision"
 ACCEPTED_ISSUES = "accepted-issues"
+
+root = logging.getLogger()
+root.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
+logger = logging.getLogger(__name__)
 
 
 def get_waiting_users(issue):
@@ -58,7 +68,6 @@ def get_staled_no_wip_merge_requests(project_id: int):
 def main():
     notify_dict = defaultdict(lambda: {STALE_WIP: [], STALE_NO_WIP: [], WAITING_DECISION: [], ACCEPTED_ISSUES: []})
     slack_user_data = get_slack_user_data()
-
     for project_id in project_ids:
 
         can_send_message = check_can_send_slack_messages(project_id)
@@ -82,9 +91,6 @@ def main():
                 for username in usernames:
                     if username not in OLD_MEMBERS:
                         notify_dict[username][function_dict["key"]].append(elem['web_url'])
-                    else:
-                        # ?
-                        pass
 
     for username in notify_dict:
         if username is None:
@@ -130,9 +136,12 @@ def main():
 
 
 if __name__ == '__main__':
+    logger.info("Starting Slack Resume")
     day_number = datetime.datetime.today().weekday()
 
     if day_number < 5 or DRY_RUN is not None:
         main()
     else:
         print("It's weekend, so I watch series, I'm not going to talk in slack")
+    logger.info("Stopping Slack Resume")
+    gorrabot_timer.stop()
