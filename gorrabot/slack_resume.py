@@ -133,7 +133,17 @@ def main():
 
         if send and DRY_RUN is None:
             send_message_to_user(username, text, slack_user_data)
-
+    for username in REPORT_USERS:
+        text = "H0L4! Este es tu reporte que te da tu amigo, gorrabot :gorrabot2:!\n"
+        report = json.dumps({
+            report_user: {
+                key: len(notify_dict[report_user][key])
+                for key in notify_dict[report_user]
+            } for report_user in notify_dict
+        }, indent=4)
+        text += f"Te mando el resumen en un json: ```{report}```\n"
+        if send and DRY_RUN is None:
+            send_message_to_user(username, text, slack_user_data)
 
 if __name__ == '__main__':
     logger.info("Starting Slack Resume")
@@ -142,6 +152,6 @@ if __name__ == '__main__':
     if day_number < 5 or DRY_RUN is not None:
         main()
     else:
-        print("It's weekend, so I watch series, I'm not going to talk in slack")
+        logger.info("It's weekend, so I watch series, I'm not going to talk in slack")
     logger.info("Stopping Slack Resume")
     gorrabot_timer.stop()
