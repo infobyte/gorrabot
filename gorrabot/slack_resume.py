@@ -2,17 +2,16 @@
 import datetime
 import os
 import sys
-import json
 from collections import defaultdict
 import logging
-
+import time
 from gorrabot.api.constants import gitlab_to_slack_user, MAX_ISSUES_ACCEPTED
 from gorrabot.api.gitlab.issues import get_accepted_issues
 from gorrabot.api.gitlab.usernames import get_usernames_from_mr_or_issue
 from gorrabot.api.slack.messages import send_message_to_user, check_can_send_slack_messages
 from gorrabot.api.slack.users import get_slack_user_data
 from gorrabot.constants import OLD_MEMBERS
-from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests
+from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests, create_report
 from gorrabot.config import config, gorrabot_timer
 
 DRY_RUN = os.environ.get("DRY_RUN", None)
@@ -64,6 +63,15 @@ def get_staled_wip_merge_requests(project_id: int):
 def get_staled_no_wip_merge_requests(project_id: int):
     return get_staled_merge_requests(project_id, 'no')
 
+def send_report_to_user(username, notify_dict, slack_user_data):
+    text = "H0L4! Este es tu reporte que te da tu amigo, gorrabot :gorrabot2:!\n"
+    send_message_to_user(username, text, slack_user_data)
+    for user in notify_dict:
+        time.sleep(1)
+        report = f"```{create_report(notify_dict, user)}```"
+        send_message_to_user(username, report, slack_user_data)
+
+
 
 def main():
     notify_dict = defaultdict(lambda: {STALE_WIP: [], STALE_NO_WIP: [], WAITING_DECISION: [], ACCEPTED_ISSUES: []})
@@ -90,7 +98,7 @@ def main():
 
                 for username in usernames:
                     if username not in OLD_MEMBERS:
-                        notify_dict[username][function_dict["key"]].append(elem['web_url'])
+                        notify_dict[username][function_dict["key"]].append(elem)
 
     for username in notify_dict:
         if username is None:
@@ -100,7 +108,7 @@ def main():
         if len(notify_dict[username][STALE_WIP]) > 0:
             text += ":warning: Algunos de tus MR con WIP/Draft estan " \
                     "estancados, estos son!:\n"
-            text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_WIP]])
+            text = "+ ".join([text] + [url['web_url'] + "\n" for url in notify_dict[username][STALE_WIP]])
             send = True
         else:
             text += "No tenes MR en WIP/Draft estancados :ditto:!\n"
@@ -108,42 +116,24 @@ def main():
             text += ":warning: Algunos de tus MR sin WIP/Draft estan estancados, si creés que alguno tiene todo lo necesario " \
                     "para ser revisado, pedí approves. También fijate si se puede aclarar mejor qué se " \
                     "hizo y por qué, para hacerle la tarea más fácil a quien haga review de esto:\n"
-            text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][STALE_NO_WIP]])
+            text = "+ ".join([text] + [url['web_url'] + "\n" for url in notify_dict[username][STALE_NO_WIP]])
             send = True
         else:
             text += "No tenes MR sin WIP/Draft estancados :ditto:!\n"
         if len(notify_dict[username][ACCEPTED_ISSUES]) > MAX_ISSUES_ACCEPTED:
             text += f":x: Tenes mas de {MAX_ISSUES_ACCEPTED} issues en 'Accepted', fijate:\n"
-            text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][ACCEPTED_ISSUES]])
+            text = "+ ".join([text] + [url['web_url'] + "\n" for url in notify_dict[username][ACCEPTED_ISSUES]])
             send = True
         if len(notify_dict[username][WAITING_DECISION]) > 0:
             text += "Hay issues esperando por tu decision, por favor revisalos, esto bloquea al equipo dev:\n"
-            text = "+ ".join([text] + [url + "\n" for url in notify_dict[username][WAITING_DECISION]])
+            text = "+ ".join([text] + [url['web_url'] + "\n" for url in notify_dict[username][WAITING_DECISION]])
             send = True
-        if username in REPORT_USERS:
-            report = json.dumps({
-                report_user: {
-                    key: len(notify_dict[report_user][key])
-                    for key in notify_dict[report_user]
-                } for report_user in notify_dict
-            }, indent=4)
-            text += f"Te mando el resumen en un json: ```{report}```\n"
-
         text += "Nos vemos en el proximo reporte :ninja:"
 
         if send and DRY_RUN is None:
             send_message_to_user(username, text, slack_user_data)
     for username in REPORT_USERS:
-        text = "H0L4! Este es tu reporte que te da tu amigo, gorrabot :gorrabot2:!\n"
-        report = json.dumps({
-            report_user: {
-                key: len(notify_dict[report_user][key])
-                for key in notify_dict[report_user]
-            } for report_user in notify_dict
-        }, indent=4)
-        text += f"Te mando el resumen en un json: ```{report}```\n"
-        if send and DRY_RUN is None:
-            send_message_to_user(username, text, slack_user_data)
+        send_report_to_user(username, notify_dict, slack_user_data)
 
 if __name__ == '__main__':
     logger.info("Starting Slack Resume")

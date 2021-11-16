@@ -11,7 +11,7 @@ from gorrabot.api.gitlab.projects import get_project_name
 from gorrabot.api.utils import parse_api_date
 from gorrabot.config import config
 from gorrabot.constants import regex_dict, decision_issue_message_interval, inactivity_time
-
+import json
 logger = logging.getLogger(__name__)
 
 
@@ -178,3 +178,32 @@ def get_push_info(push, branch_name):
     }
 
     return push_info
+
+
+def create_report(notify_dict:dict,report_user):
+    report = json.dumps({
+        report_user: {
+            "stale_wip": len(notify_dict[report_user]["stale_wip"]),
+            "stale_no_wip": len(notify_dict[report_user]["stale_no_wip"]),
+            "waiting-decision": len(notify_dict[report_user]["waiting-decision"]),
+            "accepted-issues": report_accepted_issues(notify_dict[report_user]["accepted-issues"])
+        }
+    }, indent=4)
+    return report
+
+
+def report_accepted_issues(accepted_issues:list):
+    issues = {
+        'Estimated': [],
+        'Not Estimated': []
+    }
+    for issue in accepted_issues:
+        if issue['time_stats']['human_time_estimate'] is None:
+            issues['Not Estimated'].append(issue['web_url'])
+        else:
+            issues['Estimated'].append({
+                'id': issue['web_url'],
+                'Estimated': issue['time_stats']['human_time_estimate'],
+                'Spent': issue['time_stats']['human_total_time_spent'],
+            })
+    return issues

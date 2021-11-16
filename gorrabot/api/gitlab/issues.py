@@ -22,7 +22,7 @@ def get_issues(project_id: int, filters: dict = None):
 def get_accepted_issues(project_id: int):
     filters = {
         'scope': 'all',
-        'labels': 'Accepted',
+        'labels': 'stage::Accepted',
         'state': 'opened',
         'per_page': 100,
     }
