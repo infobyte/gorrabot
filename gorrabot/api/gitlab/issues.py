@@ -2,6 +2,7 @@ from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
 from gorrabot.api.gitlab.utils import paginated_get
 
 
+
 def get_issue(project_id: int, iid: int):
     url = '{}/projects/{}/issues/{}'.format(
             GITLAB_API_PREFIX, project_id, iid)
@@ -22,7 +23,7 @@ def get_issues(project_id: int, filters: dict = None):
 def get_accepted_issues(project_id: int):
     filters = {
         'scope': 'all',
-        'labels': 'Accepted',
+        'labels': 'stage::Accepted',
         'state': 'opened',
         'per_page': 100,
     }
