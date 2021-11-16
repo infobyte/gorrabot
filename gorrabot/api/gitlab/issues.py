@@ -2,7 +2,6 @@ from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
 from gorrabot.api.gitlab.utils import paginated_get
 
 
-
 def get_issue(project_id: int, iid: int):
     url = '{}/projects/{}/issues/{}'.format(
             GITLAB_API_PREFIX, project_id, iid)
