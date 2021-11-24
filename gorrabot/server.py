@@ -58,7 +58,7 @@ handler.setFormatter(formatter)
 root.addHandler(handler)
 logger = logging.getLogger(__name__)
 
-gorrabot_timer = GorrabotTimer(config.cache_clear, 10)  # execute every 30 minutes
+gorrabot_timer = GorrabotTimer(config.cache_clear, 1800)  # execute every 30 minutes
 
 
 @app.route('/clear-cache')
