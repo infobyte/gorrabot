@@ -12,7 +12,7 @@ from gorrabot.api.slack.messages import send_message_to_user, check_can_send_sla
 from gorrabot.api.slack.users import get_slack_user_data
 from gorrabot.constants import OLD_MEMBERS
 from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests, create_report
-from gorrabot.config import config, gorrabot_timer
+from gorrabot.config import config
 
 DRY_RUN = os.environ.get("DRY_RUN", None)
 
@@ -63,6 +63,7 @@ def get_staled_wip_merge_requests(project_id: int):
 def get_staled_no_wip_merge_requests(project_id: int):
     return get_staled_merge_requests(project_id, 'no')
 
+
 def send_report_to_user(username, notify_dict, slack_user_data):
     text = "H0L4! Este es tu reporte que te da tu amigo, gorrabot :gorrabot2:!\n"
     send_message_to_user(username, text, slack_user_data)
@@ -70,7 +71,6 @@ def send_report_to_user(username, notify_dict, slack_user_data):
         time.sleep(1)
         report = f"```{create_report(notify_dict, user)}```"
         send_message_to_user(username, report, slack_user_data)
-
 
 
 def main():
@@ -135,6 +135,7 @@ def main():
     for username in REPORT_USERS:
         send_report_to_user(username, notify_dict, slack_user_data)
 
+
 if __name__ == '__main__':
     logger.info("Starting Slack Resume")
     day_number = datetime.datetime.today().weekday()
@@ -144,4 +145,3 @@ if __name__ == '__main__':
     else:
         logger.info("It's weekend, so I watch series, I'm not going to talk in slack")
     logger.info("Stopping Slack Resume")
-    gorrabot_timer.stop()

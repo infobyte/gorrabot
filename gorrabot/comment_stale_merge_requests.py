@@ -7,7 +7,7 @@ from gorrabot.api.gitlab.merge_requests import comment_mr
 from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.constants import OLD_MEMBERS, MSG_MR_OLD_MEMBER, stale_mr_message_interval, MSG_STALE_MR
 from gorrabot.utils import get_staled_merge_requests
-from gorrabot.config import config, gorrabot_timer
+from gorrabot.config import config
 
 """"(
     comment_mr,
@@ -57,4 +57,3 @@ def main():
 if __name__ == '__main__':
     main()
     logger.info("Ending stale MR check")
-    gorrabot_timer.stop()

@@ -4,7 +4,6 @@ import re
 from functools import lru_cache
 
 from gorrabot.api.vault import SECRETS, GORRABOT_CONFIG_FILE, get_secret
-from gorrabot.timer import GorrabotTimer
 
 
 DEBUG_MODE = os.environ.get('GORRABOT_DEBUG')
@@ -43,4 +42,3 @@ def config() -> dict:
 
 
 config()
-gorrabot_timer = GorrabotTimer(config.cache_clear, 1800)  # execute every 30 minutes
