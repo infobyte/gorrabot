@@ -44,6 +44,7 @@ from gorrabot.multi_main_repo_logic import (
     add_multiple_merge_requests_label_if_needed
 )
 from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag, get_push_info
+from gorrabot.timer import GorrabotTimer
 
 app = Flask(__name__)
 
@@ -56,6 +57,8 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 root.addHandler(handler)
 logger = logging.getLogger(__name__)
+
+gorrabot_timer = GorrabotTimer(config.cache_clear, 10)  # execute every 30 minutes
 
 
 @app.route('/clear-cache')
