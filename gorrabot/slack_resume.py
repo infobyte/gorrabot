@@ -69,7 +69,7 @@ def send_report_to_user(username, notify_dict, slack_user_data):
     send_message_to_user(username, text, slack_user_data)
     for user in notify_dict:
         time.sleep(1)
-        report = f"```{create_report(notify_dict, user)}```"
+        report = create_report(notify_dict, user)
         send_message_to_user(username, report, slack_user_data)
 
 

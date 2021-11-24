@@ -180,19 +180,20 @@ def get_push_info(push, branch_name):
     return push_info
 
 
-def create_report(notify_dict:dict,report_user):
-    report = json.dumps({
-        report_user: {
-            "stale_wip": len(notify_dict[report_user]["stale_wip"]),
-            "stale_no_wip": len(notify_dict[report_user]["stale_no_wip"]),
-            "waiting-decision": len(notify_dict[report_user]["waiting-decision"]),
-            "accepted-issues": report_accepted_issues(notify_dict[report_user]["accepted-issues"])
-        }
-    }, indent=4)
+def create_report(notify_dict: dict, user: str):
+    accepted_issues = report_accepted_issues(notify_dict[user]["accepted-issues"])
+    report = f"""*{user}*
+    •stale_wip: {len(notify_dict[user]["stale_wip"])}
+    •stale_no_wip: {len(notify_dict[user]["stale_no_wip"])}
+    •waiting-decision: {len(notify_dict[user]["waiting-decision"])}
+    •accepted-issues: 
+        Estimated:{accepted_issues['Estimated']}
+        Not Estimated:{accepted_issues['Not Estimated']}
+    """
     return report
 
 
-def report_accepted_issues(accepted_issues:list):
+def report_accepted_issues(accepted_issues: list):
     issues = {
         'Estimated': [],
         'Not Estimated': []
