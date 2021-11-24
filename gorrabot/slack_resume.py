@@ -14,7 +14,7 @@ from gorrabot.constants import OLD_MEMBERS
 from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests, create_report
 from gorrabot.config import config
 
-DRY_RUN = os.environ.get("DRY_RUN", None)
+DRY_RUN = os.environ.get("DRY_RUN", True)
 
 REPORT_USERS = config()['gitlab'].get('REPORT_USERS', [])
 
@@ -69,7 +69,7 @@ def send_report_to_user(username, notify_dict, slack_user_data):
     send_message_to_user(username, text, slack_user_data)
     for user in notify_dict:
         time.sleep(1)
-        report = f"```{create_report(notify_dict, user)}```"
+        report = create_report(notify_dict, user)
         send_message_to_user(username, report, slack_user_data)
 
 
@@ -133,7 +133,7 @@ def main():
         if send and DRY_RUN is None:
             send_message_to_user(username, text, slack_user_data)
     for username in REPORT_USERS:
-        send_report_to_user(username, notify_dict, slack_user_data)
+        send_report_to_user("gmartinez", notify_dict, slack_user_data)
 
 
 if __name__ == '__main__':
