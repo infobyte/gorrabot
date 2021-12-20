@@ -82,7 +82,7 @@ def homepage():
     json = request.get_json()
     if json is None:
         abort(400)
-
+    logger.info("Event received")
     if json.get('object_kind') == 'push':
         logger.info("Handling a PUSH event")
         send_debug_message("Handling a PUSH event")
@@ -92,18 +92,20 @@ def homepage():
         if json['user']['username'] == GITLAB_SELF_USERNAME:
             # To prevent infinite loops and race conditions, ignore events related
             # to actions that this bot did
-            logger.info('Ignoring webhook from myself')
-            send_debug_message('Ignoring webhook from myself')
-            return 'Ignoring webhook from myself'
+            message = 'Ignoring webhook from myself'
+            logger.info(message)
+            send_debug_message(message)
+            abort(make_response({"message": message}, 400))
     except KeyError as e:
         message = f"{e} parameter expected but not found"
         logger.info(message)
         abort(make_response({"message": message}, 400))
 
     if json.get('object_kind') != 'merge_request':
-        logger.info('I only process merge requests right now!')
-        send_debug_message('I only process merge requests right now!')
-        return 'I only process merge requests right now!'
+        message = "Event wasnt PUSH or MR"
+        logger.info(message)
+        send_debug_message(message)
+        abort(make_response({"message": message}, 400))
 
     logger.info("Handling a MR event")
     send_debug_message("Handling a MR event")
@@ -114,21 +116,24 @@ def handle_push(push: dict) -> str:
     prefix = 'refs/heads/'
 
     if not push['ref'].startswith(prefix):
-        msg = f'Unknown ref name {push["ref"]}'
-        print(msg)
-        return msg
+        logger.info(f'Unknown ref name {push["ref"]}')
+        return
 
     project_name = push["repository"]["name"]
+    branch_name = push['ref'][len(prefix):]
+    logger.info(f'Handling push from {project_name}, branch {branch_name}')
     if project_name not in config()['projects']:
+        message = f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
         send_message_to_error_channel(
-            text=f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration",
+            text=message,
             project_id=None,
             force_send=True
         )
+        logger.info(message)
         return flask.abort(400, "project not in the configuration")
 
     branch_regex = regex_dict[project_name]
-    branch_name = push['ref'][len(prefix):]
+
 
     if not re.match(branch_regex, branch_name):
         regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
@@ -183,7 +188,7 @@ def handle_mr(mr_json: dict) -> str:
 
     is_multi_main = is_multi_main_mr(mr_json)
 
-    print(f"Processing MR #{mr_attributes['iid']} of project {mr_json['repository']['name']}")
+    logger.info(f"Handling MR #{mr_attributes['iid']} of project {mr_json['repository']['name']}")
 
     check_status(mr_json, project_name)
     check_issue_reference_in_description(mr_json)
