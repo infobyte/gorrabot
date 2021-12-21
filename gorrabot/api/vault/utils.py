@@ -22,12 +22,13 @@ def get_secret(secret_name):
     :rtype: str if secrets exists, Exception otherwise
     """
     try:
-        if client and client.is_authenticated():
-            secret_response = client.secrets.kv.v2.read_secret_version(
-                mount_point='secrets',
-                path='gorrabot'
-            )
-            return secret_response['data']['data'][secret_name]
+        if not client.is_authenticated():
+            client.auth.approle.login(role_id=ROLE_ID, secret_id=SECRET_ID)
+        secret_response = client.secrets.kv.v2.read_secret_version(
+            mount_point='secrets',
+            path='gorrabot'
+        )
+        return secret_response['data']['data'][secret_name]
     except KeyError as e:
         message = f"Secret {e} could not be found"
         print(ERROR_MESSAGE.format(message))
