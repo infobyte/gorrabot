@@ -163,6 +163,7 @@ def handle_mr(mr_json: dict) -> str:
 
     mr_attributes = mr_json['object_attributes']
     project_name = mr_json["repository"]["name"]
+    source_branch = mr_attributes.get("source_branch")
 
     if project_name not in config()['projects']:
         logger.warning('Project not in the configuration')
@@ -177,18 +178,18 @@ def handle_mr(mr_json: dict) -> str:
     username = get_username(mr_json)
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
 
-    branch_regex = regex_dict[mr_json['repository']['name']]
+    branch_regex = regex_dict[project_name]
     regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
-    if not re.match(branch_regex, mr_attributes['source_branch']) \
-       and mr_attributes['source_branch'] not in regex_branch_exceptions:
-        logger.info("Branch do not match regex")
-        send_debug_message("Branch do not match regex")
-        msg_bad_branch_name = MSG_BAD_BRANCH_NAME.format(main_branches=config()['projects'][project_name]['multi-branch'])
+    logger.info(f"Handling MR #{mr_attributes['iid']} from branch {source_branch} of project {project_name}")
+    if not re.match(branch_regex, source_branch) \
+       and source_branch not in regex_branch_exceptions:
+        logger.info(f"Branch {source_branch} of repository {project_name} do not match regex")
+        send_debug_message(f"Branch {source_branch} of repository {project_name} do not match regex")
+        multi_brach = config()['projects'][project_name].get('multi-branch', '')
+        msg_bad_branch_name = MSG_BAD_BRANCH_NAME.format(main_branches=multi_brach)
         comment_mr(project_id, iid, f"@{username}: {msg_bad_branch_name}", can_be_duplicated=False)
 
     is_multi_main = is_multi_main_mr(mr_json)
-
-    logger.info(f"Handling MR #{mr_attributes['iid']} of project {mr_json['repository']['name']}")
 
     check_status(mr_json, project_name)
     check_issue_reference_in_description(mr_json)
