@@ -189,7 +189,7 @@ def handle_mr(mr_json: dict) -> str:
     regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
     logger.info(f"Handling MR #{mr_attributes['iid']} from branch {source_branch} of project {project_name}")
     if 'y2k' in source_branch:
-        message = f'Ignoring push from branch {source_branch} because is y2k'
+        message = f'Ignoring MR from branch {source_branch} because is y2k'
         send_message_to_error_channel(
             text=message,
             project_id=None,
