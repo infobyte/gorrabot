@@ -58,7 +58,6 @@ handler.setFormatter(formatter)
 root.addHandler(handler)
 logger = logging.getLogger(__name__)
 
-gorrabot_timer = GorrabotTimer(config.cache_clear, 1800)  # execute every 30 minutes
 
 
 @app.route('/clear-cache')
@@ -117,11 +116,20 @@ def handle_push(push: dict) -> str:
 
     if not push['ref'].startswith(prefix):
         logger.info(f'Unknown ref name {push["ref"]}')
-        return
+        return ''
 
     project_name = push["repository"]["name"]
     branch_name = push['ref'][len(prefix):]
     logger.info(f'Handling push from {project_name}, branch {branch_name}')
+    if 'y2k' in branch_name:
+        message = f'Ignoring push from branch {branch_name} because is y2k'
+        send_message_to_error_channel(
+            text=message,
+            project_id=None,
+            force_send=True
+        )
+        logger.info(message)
+        return message
     if project_name not in config()['projects']:
         message = f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
         send_message_to_error_channel(
@@ -133,7 +141,6 @@ def handle_push(push: dict) -> str:
         return flask.abort(400, "project not in the configuration")
 
     branch_regex = regex_dict[project_name]
-
 
     if not re.match(branch_regex, branch_name):
         regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
@@ -181,6 +188,15 @@ def handle_mr(mr_json: dict) -> str:
     branch_regex = regex_dict[project_name]
     regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
     logger.info(f"Handling MR #{mr_attributes['iid']} from branch {source_branch} of project {project_name}")
+    if 'y2k' in source_branch:
+        message = f'Ignoring push from branch {source_branch} because is y2k'
+        send_message_to_error_channel(
+            text=message,
+            project_id=None,
+            force_send=True
+        )
+        logger.info(message)
+        return message
     if not re.match(branch_regex, source_branch) \
        and source_branch not in regex_branch_exceptions:
         logger.info(f"Branch {source_branch} of repository {project_name} do not match regex")
@@ -217,9 +233,10 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
     if (
             has_label(mr_json, GitlabLabels.NO_CHANGELOG) or has_flag(project_name, "NO_CHANGELOG")
     ):
-        logger.info('Ignoring MR Changelog')
-        send_debug_message('Ignoring MR Changelog')
-        return
+        message = 'Ignoring MR Changelog'
+        logger.info(message)
+        send_debug_message(message)
+        return message
     mr_attributes = mr_json['object_attributes']
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
     username = get_username(mr_json)
@@ -419,6 +436,7 @@ def is_multi_main_mr(mr_json):
 
 
 def main():
+    gorrabot_timer = GorrabotTimer(config.cache_clear, 1800)  # execute every 30 minutes
     app.run(debug=True, use_reloader=True)
 
 
