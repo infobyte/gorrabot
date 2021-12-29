@@ -121,7 +121,7 @@ def handle_push(push: dict) -> str:
     project_name = push["repository"]["name"]
     branch_name = push['ref'][len(prefix):]
     logger.info(f'Handling push from {project_name}, branch {branch_name}')
-    if 'y2k' in branch_name:
+    if 'y2k' in str(get_push_info(push, branch_name)['issue_iid']):
         message = f'Ignoring push from branch {branch_name} because is y2k'
         send_message_to_error_channel(
             text=message,
@@ -187,8 +187,8 @@ def handle_mr(mr_json: dict) -> str:
 
     branch_regex = regex_dict[project_name]
     regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
-    logger.info(f"Handling MR #{mr_attributes['iid']} from branch {source_branch} of project {project_name}")
-    if 'y2k' in source_branch:
+    logger.info(f"Handling MR #{iid} from branch {source_branch} of project {project_name}")
+    if 'y2k' in str(iid):
         message = f'Ignoring MR from branch {source_branch} because is y2k'
         send_message_to_error_channel(
             text=message,
@@ -283,7 +283,6 @@ def check_required_attributes(push: dict, branch_name: str) -> NoReturn:
     """
 
     push_info = get_push_info(push, branch_name)
-
     project_id = push_info['project_id']
     project_name = push_info['project_name']
     issue_iid = push_info['issue_iid']
