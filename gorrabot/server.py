@@ -121,15 +121,6 @@ def handle_push(push: dict) -> str:
     project_name = push["repository"]["name"]
     branch_name = push['ref'][len(prefix):]
     logger.info(f'Handling push from {project_name}, branch {branch_name}')
-    if 'y2k' in str(get_push_info(push, branch_name)['issue_iid']):
-        message = f'Ignoring push from branch {branch_name} because is y2k'
-        send_message_to_error_channel(
-            text=message,
-            project_id=None,
-            force_send=True
-        )
-        logger.info(message)
-        return message
     if project_name not in config()['projects']:
         message = f"The project `{project_name}` tried to use gorrabot's webhook, but its not in the configuration"
         send_message_to_error_channel(
@@ -154,6 +145,15 @@ def handle_push(push: dict) -> str:
         else:
             logger.info("dev, master or staging branch")
             send_debug_message("dev, master or staging branch")
+    elif 'y2k' in str(get_push_info(push, branch_name)['issue_iid']):
+        message = f'Ignoring push from branch {branch_name} because is y2k'
+        send_message_to_error_channel(
+            text=message,
+            project_id=None,
+            force_send=True
+        )
+        logger.info(message)
+        return message
     else:
         check_required_attributes(push, branch_name)
         if 'multi-branch' in config()['projects'][project_name]:
