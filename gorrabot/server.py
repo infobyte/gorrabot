@@ -25,7 +25,9 @@ from gorrabot.api.gitlab.merge_requests import (
 from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.api.gitlab.utils import paginated_get
 from gorrabot.api.slack.messages import send_message_to_error_channel, send_debug_message
-from gorrabot.config import config, DEBUG_MODE, config
+from gorrabot.api.slack import SLACK_REQUEST_TOKEN
+from gorrabot.slack_commands import handle_summary, handle_branch
+from gorrabot.config import DEBUG_MODE, config
 from gorrabot.constants import (
     NO_VALID_CHANGELOG_FILETYPE,
     MSG_BAD_BRANCH_NAME,
@@ -59,7 +61,6 @@ root.addHandler(handler)
 logger = logging.getLogger(__name__)
 
 
-
 @app.route('/clear-cache')
 def clear_vault_cache():
     if not DEBUG_MODE and request.headers.get('X-Gitlab-Token') != GITLAB_REQUEST_TOKEN:
@@ -72,6 +73,24 @@ def clear_vault_cache():
 @app.route('/status')
 def status():
     return "OK"
+
+
+@app.route('/slack-commands', methods=['POST'])
+def summary():
+    content = request.form
+    command = content.get('command')
+    logger.info(f"Handling Slack command {command}")
+    if not DEBUG_MODE and content.get('token') != SLACK_REQUEST_TOKEN:
+        logger.info(f"Command {command} Not allow")
+        abort(403)
+    if command == '/summary':
+        response = handle_summary(content)
+    elif command == '/branch':
+        response = handle_summary(content)
+    else:
+        logger.info("Command not register")
+        abort(404)
+    return response
 
 
 @app.route('/webhook', methods=['POST'])

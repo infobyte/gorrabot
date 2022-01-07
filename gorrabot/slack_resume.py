@@ -73,32 +73,42 @@ def send_report_to_user(username, notify_dict, slack_user_data):
         send_message_to_user(username, report, slack_user_data)
 
 
-def main():
-    notify_dict = defaultdict(lambda: {STALE_WIP: [], STALE_NO_WIP: [], WAITING_DECISION: [], ACCEPTED_ISSUES: []})
-    slack_user_data = get_slack_user_data()
-    for project_id in project_ids:
+def gather_data(notify_dict:dict, project_id:str, user):
+    can_send_message = check_can_send_slack_messages(project_id)
 
-        can_send_message = check_can_send_slack_messages(project_id)
+    if not can_send_message:
+        # project cannot send messages to Slack
+        return
 
-        if not can_send_message:
-            # project cannot send messages to Slack
-            continue
+    checking_functions = [
+        {"elem_picker": get_staled_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue,
+         "key": STALE_WIP},
+        {"elem_picker": get_staled_no_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue,
+         "key": STALE_NO_WIP},
+        {"elem_picker": get_decision_issues, "user_picker": get_waiting_users, "key": WAITING_DECISION},
+        {"elem_picker": get_accepted_issues, "user_picker": get_slack_user_from_mr_or_issue, "key": ACCEPTED_ISSUES}
+    ]
 
-        checking_functions = [
-            {"elem_picker": get_staled_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_WIP},
-            {"elem_picker": get_staled_no_wip_merge_requests, "user_picker": get_slack_user_from_mr_or_issue, "key": STALE_NO_WIP},
-            {"elem_picker": get_decision_issues, "user_picker": get_waiting_users, "key": WAITING_DECISION},
-            {"elem_picker": get_accepted_issues, "user_picker": get_slack_user_from_mr_or_issue, "key": ACCEPTED_ISSUES}
-        ]
-
-        for function_dict in checking_functions:
-            for elem in function_dict["elem_picker"](project_id):
-
+    for function_dict in checking_functions:
+        for elem in function_dict["elem_picker"](project_id):
+            if user is not None:
+                notify_dict[username][function_dict["key"]].append(elem)
+            else:
                 usernames = function_dict["user_picker"](elem)
 
                 for username in usernames:
                     if username not in OLD_MEMBERS:
                         notify_dict[username][function_dict["key"]].append(elem)
+
+
+def main(user=None, project=None):
+    notify_dict = defaultdict(lambda: {STALE_WIP: [], STALE_NO_WIP: [], WAITING_DECISION: [], ACCEPTED_ISSUES: []})
+    slack_user_data = get_slack_user_data()
+    if project is not None:
+        gather_data(notify_dict, project, user)
+    else:
+        for project_id in project_ids:
+            gather_data(notify_dict, project_id, user)
 
     for username in notify_dict:
         if username is None:
