@@ -35,14 +35,6 @@ STALE_NO_WIP = "stale_no_wip"
 WAITING_DECISION = "waiting-decision"
 ACCEPTED_ISSUES = "accepted-issues"
 
-root = logging.getLogger()
-root.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-root.addHandler(handler)
-logger = logging.getLogger(__name__)
 
 
 def get_waiting_users(issue):
@@ -147,6 +139,7 @@ def main(user=None, project=None):
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
     logger.info("Starting Slack Resume")
     day_number = datetime.datetime.today().weekday()
 

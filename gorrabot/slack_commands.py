@@ -1,4 +1,4 @@
-from flask import Flask, request, abort, make_response
+from flask import make_response
 
 from gorrabot.config import config
 from gorrabot.slack_resume import main
