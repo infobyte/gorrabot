@@ -225,14 +225,15 @@ def handle_mr(mr_json: dict) -> str:
         comment_mr(project_id, iid, f"@{username}: {msg_bad_branch_name}", can_be_duplicated=False)
 
     is_multi_main = is_multi_main_mr(mr_json)
-
+    if is_multi_main:
+        logger.info("The MR is multi branch")
     check_status(mr_json, project_name)
     check_issue_reference_in_description(mr_json)
     if is_multi_main:
         add_multiple_merge_requests_label_if_needed(mr_json)
     sync_related_issue(mr_json)
     fill_fields_based_on_issue(mr_json)
-
+    logger.info(mr_attributes['state'])
     if mr_attributes['state'] == 'merged' and is_multi_main:
         logger.info("Notifying a Merge to superiors main branches")
         send_debug_message("Notifying a Merge to superiors main branches")
@@ -399,6 +400,7 @@ def sync_related_issue(mr_json: dict):
     # Closed MR -> Do nothing, assume that another MR will be created
     Closed MR -> Delete status labels (set to new)
     """
+    logger.info("Syncing related issue")
     mr = mr_json["object_attributes"]
     issue_iid = get_related_issue_iid(mr_json)
     project_id = mr['source_project_id']
