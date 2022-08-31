@@ -1,4 +1,5 @@
 import datetime
+import re
 from collections import defaultdict
 
 from gorrabot.config import config
@@ -11,6 +12,9 @@ MSG_MISSING_CHANGELOG = (
     'Si que te aprueben un merge request tu quieres, tocar el changelog tu '
     'debes'
 )
+MSG_CHANGELOG_DOSENT_PREFIX = "Los CHANGELOGS deberian empezar con [ADD], [MOD], [FIX], [DEL]" \
+                                          "acorde al cambio y parece que tu changelog no lo esta haciendo, por favor" \
+                                          "agregalo cuanod puedas"
 NO_VALID_CHANGELOG_FILETYPE = (
     'El fichero que se creó en el directorio `CHANGELOG` no tiene extensión '
     '`{changelog_filetype}` por lo que no va a ser tomado en cuenta por el sistema de '
@@ -77,6 +81,7 @@ MSG_NOTIFICATION_PREFIX_WITH_USER = "@{user} commiteo a la rama {branch} ({proje
 MSG_NOTIFICATION_PREFIX_WITHOUT_USER = "{user} (No lo encontre en mi DB) commiteo a la rama {branch} ({project_name})" \
                                        ", pero esa rama:"
 MSG_BACKLOG_MILESTONE = "Tiene Backlog como milestone!"
+CHANGELOG_PREFIX = re.compile("^(\[ADD|FIX|MOD|DEL\])")
 
 # Define inactivity as a merge request whose last commit is older than
 # now() - inactivity_time
