@@ -1,3 +1,4 @@
+import json
 import os
 from typing import NoReturn, List
 import logging
@@ -38,7 +39,9 @@ from gorrabot.constants import (
     MSG_WITHOUT_MILESTONE,
     BACKLOG_MILESTONE,
     MSG_BACKLOG_MILESTONE,
-    MSG_WITHOUT_ITERATION
+    MSG_WITHOUT_ITERATION,
+    CHANGELOG_PREFIX,
+    MSG_CHANGELOG_DOSENT_PREFIX
 )
 from gorrabot.multi_main_repo_logic import (
     handle_multi_main_push,
@@ -273,6 +276,29 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         comment_mr(project_id, iid, f"@{username}: {msg}")
         set_wip(project_id, iid)
         mr_attributes['work_in_progress'] = True
+    else:
+        if not has_changelog_prefix(project_id, iid, project_name):
+            logger.info(f"Not a valid changelog prefix")
+            comment_mr(project_id, iid, f"@{username}: {MSG_CHANGELOG_DOSENT_PREFIX}")
+
+
+
+def has_changelog_prefix(project_id, iid, project_name):
+    changes = get_mr_changes(project_id, iid)
+    for file in changes:
+        if file['new_path'].startswith('CHANGELOG'):
+            ext = config()['projects'][project_name]['changelog_filetype'] \
+                        if 'changelog_filetype' in config()['projects'][project_name] \
+                        else '.md'
+
+            if ext == ".json":
+                md = json.loads(file["diff"].split("@\n")[1].replace("+", "").replace("\n", ""))['md']
+            else:
+                md = file["diff"].split("@\n")[1].replace("+", "").replace("\n", "")
+            if not CHANGELOG_PREFIX.match(md):
+                return False
+            else:
+                return True
 
 
 def get_iteration(push: dict, branch_name: str) -> dict:
