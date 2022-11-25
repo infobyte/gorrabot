@@ -81,7 +81,7 @@ MSG_NOTIFICATION_PREFIX_WITH_USER = "@{user} commiteo a la rama {branch} ({proje
 MSG_NOTIFICATION_PREFIX_WITHOUT_USER = "{user} (No lo encontre en mi DB) commiteo a la rama {branch} ({project_name})" \
                                        ", pero esa rama:"
 MSG_BACKLOG_MILESTONE = "Tiene Backlog como milestone!"
-CHANGELOG_PREFIX = re.compile("^(\[ADD|FIX|MOD|DEL\])")
+CHANGELOG_PREFIX = re.compile("^(\[(ADD|FIX|MOD|DEL)\])")
 
 # Define inactivity as a merge request whose last commit is older than
 # now() - inactivity_time
