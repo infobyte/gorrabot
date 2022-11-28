@@ -48,7 +48,8 @@ from gorrabot.multi_main_repo_logic import (
     notify_unmerged_superior_mrs,
     add_multiple_merge_requests_label_if_needed
 )
-from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag, get_push_info
+from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag, get_push_info,\
+    clear_cached_functions
 from gorrabot.timer import GorrabotTimer
 
 app = Flask(__name__)
@@ -132,8 +133,8 @@ def homepage():
         logger.info(message)
         abort(make_response({"message": message}, 400))
     except Exception as e:
-        logger.info(message)
-        abort(make_response({"message": message}, 400))
+        logger.info(e)
+        abort(make_response({"message": e}, 400))
     clear_cached_functions()
     if handle_response:
         return handle_response
