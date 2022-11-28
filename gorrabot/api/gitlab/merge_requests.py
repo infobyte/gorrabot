@@ -1,5 +1,6 @@
 import datetime
 import logging
+from functools import lru_cache
 
 from gorrabot.api.gitlab import gitlab_session, GITLAB_API_PREFIX
 from gorrabot.api.gitlab.projects import get_project_name
@@ -10,6 +11,7 @@ from gorrabot.config import config
 logger = logging.getLogger(__name__)
 
 
+@lru_cache(maxsize=None)
 def get_merge_requests(project_id: int, filters=None):
     if filters is None:
         filters = {}
@@ -22,6 +24,7 @@ def mr_url(project_id, iid):
             GITLAB_API_PREFIX, project_id, iid)
 
 
+@lru_cache(maxsize=None)
 def get_mr_changes(project_id: int, iid: int):
     url = mr_url(project_id, iid) + '/changes'
     res = gitlab_session.get(url)
@@ -77,6 +80,7 @@ def update_mr(project_id: int, iid: int, data: dict):
     return res.json()
 
 
+@lru_cache(maxsize=None)
 def get_related_merge_requests(project_id: int, issue_iid: int):
     url = '{}/projects/{}/issues/{}/related_merge_requests'.format(
             GITLAB_API_PREFIX, project_id, issue_iid)
