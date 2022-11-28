@@ -6,7 +6,7 @@ import os
 from gorrabot.api.gitlab.merge_requests import comment_mr
 from gorrabot.api.gitlab.usernames import get_username
 from gorrabot.constants import OLD_MEMBERS, MSG_MR_OLD_MEMBER, stale_mr_message_interval, MSG_STALE_MR
-from gorrabot.utils import get_staled_merge_requests
+from gorrabot.utils import get_staled_merge_requests, clear_cached_functions
 from gorrabot.config import config
 
 """"(
@@ -52,6 +52,7 @@ def main():
                     f'@{username}: {MSG_STALE_MR}',
                     min_time_between_comments=stale_mr_message_interval
                 )
+    clear_cached_functions()
 
 
 if __name__ == '__main__':
