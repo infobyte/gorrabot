@@ -111,7 +111,7 @@ def homepage():
             send_debug_message("Handling a PUSH event")
             handle_response = handle_push(json)
 
-        if json['user']['username'] == GITLAB_SELF_USERNAME:
+        elif json['user']['username'] == GITLAB_SELF_USERNAME:
             # To prevent infinite loops and race conditions, ignore events related
             # to actions that this bot did
             message = 'Ignoring webhook from myself'
@@ -119,7 +119,7 @@ def homepage():
             send_debug_message(message)
             abort(make_response({"message": message}, 400))
 
-        if json.get('object_kind') == 'merge_request':
+        elif json.get('object_kind') == 'merge_request':
             logger.info("Handling a MR event")
             send_debug_message("Handling a MR event")
             handle_response = handle_mr(json)
