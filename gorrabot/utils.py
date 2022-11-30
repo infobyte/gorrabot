@@ -5,9 +5,8 @@ import re
 
 from gorrabot.api.gitlab import GitlabLabels
 from gorrabot.api.gitlab.branches import get_branch
-from gorrabot.api.gitlab.issues import get_issue, get_issues, get_accepted_issues
-from gorrabot.api.gitlab.merge_requests import update_mr, get_merge_requests, get_mr_changes, get_mr, \
-    get_mr_last_commit, get_related_merge_requests
+from gorrabot.api.gitlab.issues import get_issue, get_issues
+from gorrabot.api.gitlab.merge_requests import update_mr, get_merge_requests, get_mr_last_commit
 from gorrabot.api.gitlab.projects import get_project_name
 from gorrabot.api.utils import parse_api_date
 from gorrabot.config import config
@@ -209,11 +208,3 @@ def report_accepted_issues(accepted_issues: list):
                 'Spent': issue['time_stats']['human_total_time_spent'],
             })
     return issues
-
-
-def clear_cached_functions():
-    get_branch.cache_clear()
-    get_issue.cache_clear()
-    get_merge_requests.cache_clear()
-    get_mr_changes.cache_clear()
-    get_related_merge_requests.cache_clear()

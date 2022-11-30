@@ -11,8 +11,7 @@ from gorrabot.api.gitlab.usernames import get_usernames_from_mr_or_issue
 from gorrabot.api.slack.messages import send_message_to_user, check_can_send_slack_messages
 from gorrabot.api.slack.users import get_slack_user_data
 from gorrabot.constants import OLD_MEMBERS
-from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests, create_report,\
-    clear_cached_functions
+from gorrabot.utils import get_decision_issues, get_waiting_users_from_issue, get_staled_merge_requests, create_report
 from gorrabot.config import config
 
 DRY_RUN = os.environ.get("DRY_RUN", None)
@@ -135,7 +134,6 @@ def main(user=None, project=None):
 
         if send and DRY_RUN is None:
             send_message_to_user(username, text, slack_user_data)
-    clear_cached_functions()
     for username in REPORT_USERS:
         send_report_to_user(username, notify_dict, slack_user_data)
 

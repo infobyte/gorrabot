@@ -48,8 +48,7 @@ from gorrabot.multi_main_repo_logic import (
     notify_unmerged_superior_mrs,
     add_multiple_merge_requests_label_if_needed
 )
-from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag, get_push_info,\
-    clear_cached_functions
+from gorrabot.utils import get_related_issue_iid, fill_fields_based_on_issue, has_label, has_flag, get_push_info
 from gorrabot.timer import GorrabotTimer
 
 app = Flask(__name__)
@@ -105,26 +104,15 @@ def homepage():
     if json is None:
         abort(400)
     logger.info("Event received")
+    if json.get('object_kind') == 'push':
+        logger.info("Handling a PUSH event")
+        send_debug_message("Handling a PUSH event")
+        return handle_push(json)
     try:
-        if json.get('object_kind') == 'push':
-            logger.info("Handling a PUSH event")
-            send_debug_message("Handling a PUSH event")
-            handle_response = handle_push(json)
-
-        elif json['user']['username'] == GITLAB_SELF_USERNAME:
+        if json['user']['username'] == GITLAB_SELF_USERNAME:
             # To prevent infinite loops and race conditions, ignore events related
             # to actions that this bot did
             message = 'Ignoring webhook from myself'
-            logger.info(message)
-            send_debug_message(message)
-            abort(make_response({"message": message}, 400))
-
-        elif json.get('object_kind') == 'merge_request':
-            logger.info("Handling a MR event")
-            send_debug_message("Handling a MR event")
-            handle_response = handle_mr(json)
-        else:
-            message = "Event wasnt PUSH or MR"
             logger.info(message)
             send_debug_message(message)
             abort(make_response({"message": message}, 400))
@@ -132,16 +120,14 @@ def homepage():
         message = f"{e} parameter expected but not found"
         logger.info(message)
         abort(make_response({"message": message}, 400))
-    except Exception as e:
-        logger.info(e)
-        abort(make_response({"message": e}, 400))
-    clear_cached_functions()
-    if handle_response:
-        return handle_response
-    else:
-        message = f"handler functions dosent return anything"
+    if json.get('object_kind') != 'merge_request':
+        message = "Event wasnt PUSH or MR"
         logger.info(message)
+        send_debug_message(message)
         abort(make_response({"message": message}, 400))
+    logger.info("Handling a MR event")
+    send_debug_message("Handling a MR event")
+    return handle_mr(json)
 
 
 def handle_push(push: dict) -> str:
