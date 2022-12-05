@@ -227,11 +227,15 @@ def handle_mr(mr_json: dict) -> str:
     is_multi_main = is_multi_main_mr(mr_json)
     if is_multi_main:
         logger.info("The MR is multi branch")
+    logger.info("Checking MR status")
     check_status(mr_json, project_name)
+    logger.info("Checking Issue references")
     check_issue_reference_in_description(mr_json)
     if is_multi_main:
+        logger.info("Checking and adding if needed multi MR label")
         add_multiple_merge_requests_label_if_needed(mr_json)
     sync_related_issue(mr_json)
+    logger.info("Filling fields based on issue")
     fill_fields_based_on_issue(mr_json)
     logger.info(mr_attributes['state'])
     if mr_attributes['state'] == 'merged' and is_multi_main:
@@ -263,8 +267,9 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
 
     changelog_filetype = config()['projects'][project_name]['changelog_filetype'] \
                          if 'changelog_filetype' in config()['projects'][project_name] else '.md'
-
+    logger.info("Checking changelog")
     if not has_changed_changelog(project_id, iid, project_name, only_md=True):
+        logger.info("The MR doesn't have changelogo or is a bad file type")
         if has_changed_changelog(project_id, iid, project_name, only_md=False):
             logger.info(f"Not a valid changelog file type: {changelog_filetype}")
             msg = NO_VALID_CHANGELOG_FILETYPE.format(changelog_filetype=changelog_filetype)
