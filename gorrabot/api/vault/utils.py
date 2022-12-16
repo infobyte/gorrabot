@@ -1,16 +1,17 @@
 import hvac
 from hvac.exceptions import InvalidRequest
-from . import VAULT_SERVER, ROLE_ID, SECRET_ID
+from . import VAULT_SERVER, ROLE_ID, SECRET_ID, SKIP_SERVER
 
 ERROR_MESSAGE = "VaultError: {}"
 
-try:
-    client = hvac.Client(url=VAULT_SERVER)
-    client.auth.approle.login(role_id=ROLE_ID, secret_id=SECRET_ID)
-except InvalidRequest as e:
-    message = f"Cannot connect to Vault server, {e}"
-    print(ERROR_MESSAGE.format(message))
-    exit(1)
+if not SKIP_SERVER:
+    try:
+        client = hvac.Client(url=VAULT_SERVER)
+        client.auth.approle.login(role_id=ROLE_ID, secret_id=SECRET_ID)
+    except InvalidRequest as e:
+        message = f"Cannot connect to Vault server, {e}"
+        print(ERROR_MESSAGE.format(message))
+        exit(1)
 
 
 def get_secret(secret_name):
