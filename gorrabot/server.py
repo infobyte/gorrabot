@@ -1,13 +1,14 @@
 import os
 import logging
 import sys
-from gorrabot.worker_factory import Worker, buffer
+
 from flask import Flask, request, abort, make_response
 
 from gorrabot.api.gitlab import (
     GITLAB_REQUEST_TOKEN,
     GITLAB_SELF_USERNAME,
 )
+from gorrabot.worker_factory import Worker, buffer
 from gorrabot.api.slack.messages import send_debug_message
 from gorrabot.api.slack import SLACK_REQUEST_TOKEN
 from gorrabot.slack_commands import handle_summary
@@ -65,12 +66,12 @@ def summary():
 def homepage():
     if not DEBUG_MODE and request.headers.get('X-Gitlab-Token') != GITLAB_REQUEST_TOKEN:
         abort(403)
-    json = request.get_json()
-    if json is None:
+    event_json = request.get_json()
+    if event_json is None:
         abort(400)
     logger.info("Event received")
     try:
-        if json['user']['username'] == GITLAB_SELF_USERNAME:
+        if event_json['user']['username'] == GITLAB_SELF_USERNAME:
             # To prevent infinite loops and race conditions, ignore events related
             # to actions that this bot did
             message = 'Ignoring webhook from myself'
@@ -78,10 +79,11 @@ def homepage():
             send_debug_message(message)
             abort(make_response({"message": message}, 400))
     except KeyError as e:
-        message = f"{e} parameter expected but not found"
-        logger.info(message)
-        abort(make_response({"message": message}, 400))
-    buffer.put(json)
+        pass
+        #message = f"{e} parameter expected but not found"
+        #logger.info(message)
+        #abort(make_response({"message": message}, 400))
+    buffer.put(event_json)
     return 'OK'
 
 
