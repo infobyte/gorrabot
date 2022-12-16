@@ -1,10 +1,10 @@
 import hvac
 from hvac.exceptions import InvalidRequest
-from . import VAULT_SERVER, ROLE_ID, SECRET_ID, SKIP_SERVER
+from . import VAULT_SERVER, ROLE_ID, SECRET_ID, SKIP_VAULT
 
 ERROR_MESSAGE = "VaultError: {}"
 
-if not SKIP_SERVER:
+if not SKIP_VAULT:
     try:
         client = hvac.Client(url=VAULT_SERVER)
         client.auth.approle.login(role_id=ROLE_ID, secret_id=SECRET_ID)

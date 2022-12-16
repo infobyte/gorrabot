@@ -89,7 +89,7 @@ def main():
     GorrabotTimer(config.cache_clear, 1800)  # execute every 30 minutes
     consumer = Worker(buffer=buffer, handler=handle_event)
     consumer.start()
-    app.run(debug=True, use_reloader=True)
+    app.run()
 
 
 if __name__ == '__main__':
