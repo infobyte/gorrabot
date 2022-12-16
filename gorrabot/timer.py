@@ -1,4 +1,8 @@
 from threading import Timer
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class GorrabotTimer:
@@ -20,11 +24,13 @@ class GorrabotTimer:
     def _run(self):
         self.is_running = False
         self.start()
+        logger.info("cleaning cache")
         self.function()
 
     def start(self):
         if not self.is_running:
             self._timer = Timer(self.interval, self._run)
+            self._timer.daemon = True
             self._timer.start()
             self.is_running = True
 
