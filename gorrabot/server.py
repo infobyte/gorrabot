@@ -8,13 +8,11 @@ from gorrabot.api.gitlab import (
     GITLAB_REQUEST_TOKEN,
     GITLAB_SELF_USERNAME,
 )
-from gorrabot.worker_factory import Worker, buffer
+from gorrabot.worker_factory import buffer
 from gorrabot.api.slack.messages import send_debug_message
 from gorrabot.api.slack import SLACK_REQUEST_TOKEN
 from gorrabot.slack_commands import handle_summary
 from gorrabot.config import DEBUG_MODE, config
-from gorrabot.timer import GorrabotTimer
-from gorrabot.event_handling import handle_event
 
 
 app = Flask(__name__)
@@ -88,9 +86,6 @@ def homepage():
 
 
 def main():
-    GorrabotTimer(config.cache_clear, 1800)  # execute every 30 minutes
-    consumer = Worker(buffer=buffer, handler=handle_event)
-    consumer.start()
     app.run()
 
 
