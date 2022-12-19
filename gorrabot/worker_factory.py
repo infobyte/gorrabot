@@ -8,6 +8,7 @@ class Worker(threading.Thread):
         super().__init__(daemon=True)
         self.buffer = buffer
         self.handler = handler
+        self.start()
 
     def run(self):
         while True:
