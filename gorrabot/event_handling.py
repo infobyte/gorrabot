@@ -212,6 +212,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         if not has_changelog_prefix(project_id, iid, project_name):
             logger.info(f"Not a valid changelog prefix")
             comment_mr(project_id, iid, f"@{username}: {MSG_CHANGELOG_DOSENT_PREFIX}")
+            set_wip(project_id, iid)
 
 
 def has_changelog_prefix(project_id, iid, project_name):
