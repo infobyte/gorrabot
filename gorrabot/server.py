@@ -63,9 +63,11 @@ def summary():
 @app.route('/webhook', methods=['POST'])
 def homepage():
     if not DEBUG_MODE and request.headers.get('X-Gitlab-Token') != GITLAB_REQUEST_TOKEN:
+        logger.info("Request unauthorized")
         abort(403)
     event_json = request.get_json()
     if event_json is None:
+        logger.info("Request doesn't have json")
         abort(400)
     logger.info("Event received")
     try:
@@ -75,7 +77,7 @@ def homepage():
             message = 'Ignoring webhook from myself'
             logger.info(message)
             send_debug_message(message)
-            abort(make_response({"message": message}, 400))
+            abort(make_response({"message": message}, 200))
     except KeyError as e:
         pass
         #message = f"{e} parameter expected but not found"

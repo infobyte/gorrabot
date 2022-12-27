@@ -13,8 +13,8 @@ MSG_MISSING_CHANGELOG = (
     'debes'
 )
 MSG_CHANGELOG_DOSENT_PREFIX = "Los CHANGELOGS deberian empezar con [ADD], [MOD], [FIX], [DEL]" \
-                                          "acorde al cambio y parece que tu changelog no lo esta haciendo, por favor" \
-                                          "agregalo cuando puedas"
+                                          " acorde al cambio y parece que tu changelog no lo esta haciendo, por favor" \
+                                          " agregalo cuando puedas"
 NO_VALID_CHANGELOG_FILETYPE = (
     'El fichero que se creó en el directorio `CHANGELOG` no tiene extensión '
     '`{changelog_filetype}` por lo que no va a ser tomado en cuenta por el sistema de '
