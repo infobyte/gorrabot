@@ -32,7 +32,8 @@ from gorrabot.constants import (
     MSG_BACKLOG_MILESTONE,
     MSG_WITHOUT_ITERATION,
     CHANGELOG_PREFIX,
-    MSG_CHANGELOG_DOSENT_PREFIX
+    MSG_CHANGELOG_DOSENT_PREFIX,
+    MSG_CHANGELOG_EMPTY
 )
 from gorrabot.multi_main_repo_logic import (
     handle_multi_main_push,
@@ -209,13 +210,10 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         set_wip(project_id, iid)
         mr_attributes['work_in_progress'] = True
     else:
-        if not has_changelog_prefix(project_id, iid, project_name):
-            logger.info(f"Not a valid changelog prefix")
-            comment_mr(project_id, iid, f"@{username}: {MSG_CHANGELOG_DOSENT_PREFIX}")
-            set_wip(project_id, iid)
+        check_changelog_prefix(project_id, iid, project_name, username)
 
 
-def has_changelog_prefix(project_id, iid, project_name):
+def check_changelog_prefix(project_id, iid, project_name, username):
     changes = get_mr_changes(project_id, iid)
     for file in changes:
         if file['new_path'].startswith('CHANGELOG'):
@@ -223,17 +221,22 @@ def has_changelog_prefix(project_id, iid, project_name):
                         if 'changelog_filetype' in config()['projects'][project_name] \
                         else '.md'
             # If the file exist but is empty don't do anything
-            if len(file["diff"]) == 0:
-                return True
-            if ext == ".json":
-                md = json.loads(file["diff"].split("@\n")[1].replace("+", "").replace("\n", ""))['md']
-            else:
-                md = file["diff"].split("@\n")[1].replace("+", "").replace("\n", "")
-            if not CHANGELOG_PREFIX.match(md):
-                return False
-            else:
-                return True
-
+            try:
+                if len(file["diff"]) == 0:
+                    logger.info(f"Changelog Empty")
+                    comment_mr(project_id, iid, f"@{username}: {MSG_CHANGELOG_EMPTY}")
+                    set_wip(project_id, iid)
+                if ext == ".json":
+                    md = json.loads(file["diff"].split("@\n")[1].replace("+", "").replace("\n", ""))['md']
+                else:
+                    md = file["diff"].split("@\n")[1].replace("+", "").replace("\n", "")
+                if not CHANGELOG_PREFIX.match(md):
+                    logger.info(f"Not a valid changelog prefix")
+                    comment_mr(project_id, iid, f"@{username}: {MSG_CHANGELOG_DOSENT_PREFIX}")
+                    set_wip(project_id, iid)
+            except Exception:
+                logger.info(Exception)
+                logger.info("Error trying to read changelog")
 
 def get_iteration(push: dict, branch_name: str) -> dict:
     """ Gets an iteration from a given issue """
