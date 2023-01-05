@@ -14,7 +14,10 @@ MSG_MISSING_CHANGELOG = (
 )
 MSG_CHANGELOG_DOSENT_PREFIX = "Los CHANGELOGS deberian empezar con [ADD], [MOD], [FIX], [DEL]" \
                                           " acorde al cambio y parece que tu changelog no lo esta haciendo, por favor" \
-                                          " agregalo cuando puedas"
+                                          " agregalo cuando puedas."
+MSG_CHANGELOG_DOSENT_NAME = "Los CHANGELOGS deberian tener el numero del ticket como nombre."
+MSG_CHANGELOG_DOSENT_SUFIX = "Los CHANGELOGS deberian terminar con #numero_del_ticket, osea un numeral " \
+                             "seguido del numero del ticket que origna el MR."
 MSG_CHANGELOG_EMPTY = "Parece que el changelog esta vacio, no te olvides de completarlo despues"
 NO_VALID_CHANGELOG_FILETYPE = (
     'El fichero que se creó en el directorio `CHANGELOG` no tiene extensión '

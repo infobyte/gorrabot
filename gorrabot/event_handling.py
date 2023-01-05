@@ -33,6 +33,8 @@ from gorrabot.constants import (
     MSG_WITHOUT_ITERATION,
     CHANGELOG_PREFIX,
     MSG_CHANGELOG_DOSENT_PREFIX,
+    MSG_CHANGELOG_DOSENT_NAME,
+    MSG_CHANGELOG_DOSENT_SUFIX,
     MSG_CHANGELOG_EMPTY
 )
 from gorrabot.multi_main_repo_logic import (
@@ -192,6 +194,7 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         logger.info(message)
         send_debug_message(message)
         return message
+    issue_id = get_related_issue_iid(mr_json)
     mr_attributes = mr_json['object_attributes']
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
     username = get_username(mr_json)
@@ -210,10 +213,10 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         set_wip(project_id, iid)
         mr_attributes['work_in_progress'] = True
     else:
-        check_changelog_prefix(project_id, iid, project_name, username)
+        check_changelog_format(project_id, iid, project_name, username, issue_id)
 
 
-def check_changelog_prefix(project_id, iid, project_name, username):
+def check_changelog_format(project_id, iid, project_name, username, issue_id):
     changes = get_mr_changes(project_id, iid)
     for file in changes:
         if file['new_path'].startswith('CHANGELOG'):
@@ -226,16 +229,26 @@ def check_changelog_prefix(project_id, iid, project_name, username):
                     logger.info(f"Changelog Empty")
                     comment_mr(project_id, iid, f"@{username}: {MSG_CHANGELOG_EMPTY}")
                     set_wip(project_id, iid)
+                    return
                 if ext == ".json":
                     md = json.loads(file["diff"].split("@\n")[1].replace("+", "").replace("\n", ""))['md']
                 else:
                     md = file["diff"].split("@\n")[1].replace("+", "").replace("\n", "")
+                msg = []
                 if not CHANGELOG_PREFIX.match(md):
                     logger.info(f"Not a valid changelog prefix")
-                    comment_mr(project_id, iid, f"@{username}: {MSG_CHANGELOG_DOSENT_PREFIX}")
+                    msg.append(f"{MSG_CHANGELOG_DOSENT_PREFIX}")
+                if not file["new_path"].endswith(f"{issue_id}{ext}"):
+                    msg.append(f"{MSG_CHANGELOG_DOSENT_NAME}")
+                if not md.endswith(f"#{issue_id}"):
+                    msg.append(f"{MSG_CHANGELOG_DOSENT_SUFIX}")
+                if msg:
+                    msg = '\n\n'.join(msg)
+                    comment_mr(project_id, iid, f"@{username}: \n\n {msg}")
                     set_wip(project_id, iid)
-            except Exception:
-                logger.info(Exception)
+
+            except Exception as ex:
+                logger.info(ex)
                 logger.info("Error trying to read changelog")
 
 def get_iteration(push: dict, branch_name: str) -> dict:
