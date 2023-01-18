@@ -68,21 +68,15 @@ def homepage():
     event_json = request.get_json()
     if event_json is None:
         logger.info("Request doesn't have json")
-        abort(400)
+        abort(200)
     logger.info("Event received")
-    try:
-        if event_json['user']['username'] == GITLAB_SELF_USERNAME:
-            # To prevent infinite loops and race conditions, ignore events related
-            # to actions that this bot did
-            message = 'Ignoring webhook from myself'
-            logger.info(message)
-            send_debug_message(message)
-            abort(make_response({"message": message}, 200))
-    except KeyError as e:
-        pass
-        #message = f"{e} parameter expected but not found"
-        #logger.info(message)
-        #abort(make_response({"message": message}, 400))
+    if event_json.get('user',{}).get('username') == GITLAB_SELF_USERNAME:
+        # To prevent infinite loops and race conditions, ignore events related
+        # to actions that this bot did
+        message = 'Ignoring webhook from myself'
+        logger.info(message)
+        send_debug_message(message)
+        abort(make_response({"message": message}, 200))
     buffer.put(event_json)
     return 'OK'
 

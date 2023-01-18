@@ -213,10 +213,10 @@ def check_status(mr_json: dict, project_name: str) -> NoReturn:
         set_wip(project_id, iid)
         mr_attributes['work_in_progress'] = True
     else:
-        check_changelog_format(project_id, iid, project_name, username, issue_id)
+        check_changelog_format(project_id, iid, project_name, username, issue_id, mr_attributes)
 
 
-def check_changelog_format(project_id, iid, project_name, username, issue_id):
+def check_changelog_format(project_id, iid, project_name, username, issue_id, mr_attributes):
     changes = get_mr_changes(project_id, iid)
     for file in changes:
         if file['new_path'].startswith('CHANGELOG'):
@@ -243,6 +243,7 @@ def check_changelog_format(project_id, iid, project_name, username, issue_id):
                 if not md.endswith(f"#{issue_id}"):
                     msg.append(f"{MSG_CHANGELOG_DOSENT_SUFIX}")
                 if msg:
+                    mr_attributes['work_in_progress'] = True
                     msg = '\n\n'.join(msg)
                     comment_mr(project_id, iid, f"@{username}: \n\n {msg}")
                     set_wip(project_id, iid)
