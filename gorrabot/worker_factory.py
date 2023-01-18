@@ -12,9 +12,9 @@ class Worker(threading.Thread):
 
     def run(self):
         while True:
-            self.json = self.buffer.get()
+            data = self.buffer.get()
             try:
-                self.handler(self.json)
+                self.handler(data)
             except Exception:
                 pass
             self.buffer.task_done()
