@@ -252,6 +252,8 @@ def check_changelog_format(project_id, iid, project_name, username, issue_id, mr
                 logger.info(ex)
                 logger.info("Error trying to read changelog")
 
+            return
+
 def get_iteration(push: dict, branch_name: str) -> dict:
     """ Gets an iteration from a given issue """
 
