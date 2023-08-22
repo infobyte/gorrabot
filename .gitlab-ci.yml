@@ -1,3 +1,42 @@
+variables:
+    TZ: "America/New_York"
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+    APT_CACHE_DIR: "$CI_PROJECT_DIR/apt-cache"
+    POSTGRES_DB: custom_db
+    POSTGRES_USER: custom_user
+    POSTGRES_PASSWORD: custom_pass
+    FARADAY_USER: custom_user
+    FARADAY_PASSWORD: custom_pass
+    FARADAY_EMAIL: test@test.com
+    FARADAY_URL: http://localhost:5985/
+    DEFAULT_FARADAY_REF: white/dev
+    #faraday devsecops
+    VAULT_ROLE: 'python-sast-readonly'
+    VAULT_ADDR: 'https://tluav-lb.faradaysec.com'
+    VAULT_SECRET_PATH: 'gitlab/SAST'    
+
+# include:
+#   - local: .gitlab/ci/fetch-secrets.yml
+
+# workflow:
+#   rules:
+#     - if: $CI_MERGE_REQUEST_ID
+#       when: never
+#     - when: always
+
+# cache:
+#   paths:
+#     - "$CI_PROJECT_DIR/.cache/pip"
+#     - "$CI_PROJECT_DIR/apt-cache"
+
+
+# before_script:
+#     - mkdir -pv $APT_CACHE_DIR
+
+stages:
+    - SAST
+    - deploy
+
 deploy:
     stage: deploy
     environment: dev
@@ -27,3 +66,27 @@ deploy:
         when: on_success
     tags:
         - faradaytests
+
+bandit:
+  stage: SAST
+  image: python:3
+  tags:
+    - faradaytests
+  script:
+    - pip3 install bandit
+    - mkdir /results
+    - "bandit -r ${CI_PROJECT_DIR} -o /results/output.xml -f xml"
+  after_script:
+    - curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+    - apt update
+    - apt-get install software-properties-common -y
+    - apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com focal main"
+    - apt update
+    - pip3 install faraday-cli
+    - if [[ $(grep -c testcase /results/output.xml) -gt 0 ]]; then (faraday-cli auth -f $FARADAY_URL -u $FARADAY_USER -p $FARADAY_PASSWORD && faraday-cli tool report /results/output.xml -w $DEVSECOPS_WORKSPACE --vuln-tag "$CI_PROJECT_NAME"); else (echo 'no vulns dettected' && exit 0); fi    
+    #- if [[ $(grep -c testcase /results/output.xml) -gt 0 ]]; then (faraday-cli auth -f $FARADAY_URL -u $FARADAY_USER -p $FARADAY_PASSWORD && faraday-cli tool report /results/output.xml -w $DEVSECOPS_WORKSPACE --tag-vuln $CI_PROJECT_NAME,$CI_COMMIT_REF_NAME); else (echo 'no vulns dettected' && exit 0); fi    
+    # - apt install vault -y
+    # - setcap cap_ipc_lock= /usr/bin/vault
+    #- !reference [ .get_secrets ]
+  rules:
+    - when: on_success
