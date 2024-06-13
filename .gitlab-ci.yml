@@ -44,6 +44,8 @@ stages:
 deploy:
     stage: deploy
     environment: dev
+    extends:
+        - .get-secrets
     # Pull docker image
     image: python:3.8-bullseye
     # Setup AWS CLI to have proper credential keys
