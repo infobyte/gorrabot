@@ -19,7 +19,7 @@ variables:
     VAULT_AUTH_PATH: jwt
 
 include:
-  - local: .gitlab/get-secrets.yml
+  - local: .gitlab/get-secret.yaml
 # include:
 #   - local: .gitlab/ci/fetch-secrets.yml
 
