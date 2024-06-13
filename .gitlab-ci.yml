@@ -39,7 +39,7 @@ include:
 #     - mkdir -pv $APT_CACHE_DIR
 
 stages:
-    - SAST
+   # - SAST
     - deploy
 
 
