@@ -15,7 +15,7 @@ variables:
    # VAULT_ADDR: 'https://tluav-lb.faradaysec.com'
    # VAULT_SECRET_PATH: 'gitlab/SAST'    
     VAULT_SERVER_URL: https://tluav-lb.faradaysec.com
-    VAULT_AUTH_ROLE: python-sast-readonly
+    VAULT_AUTH_ROLE: faraday-env-readonly
     VAULT_AUTH_PATH: jwt
 
 include:
@@ -56,6 +56,7 @@ deploy:
         - apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
         - apt-get update && apt-get install vault -y
         - setcap cap_ipc_lock= /usr/bin/vault
+        - cat $AWS_ACCESS_KEY_ID
         - printf "[eb-cli]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "cat $AWS_ACCESS_KEY_ID" "cat $AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
         - pip install awsebcli
     # Run deployment using EB CLI deploy on master branch
