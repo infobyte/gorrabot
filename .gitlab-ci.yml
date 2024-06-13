@@ -57,6 +57,7 @@ deploy:
         - apt-get update && apt-get install vault -y
         - setcap cap_ipc_lock= /usr/bin/vault
         - cat $AWS_ACCESS_KEY_ID
+        - echo $AWS_ACCESS_KEY_ID
         - printf "[eb-cli]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "cat $AWS_ACCESS_KEY_ID" "cat $AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
         - pip install awsebcli
     # Run deployment using EB CLI deploy on master branch
