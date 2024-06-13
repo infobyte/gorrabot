@@ -61,7 +61,6 @@ deploy:
         - KEY=$(cat $AWS_ACCESS_KEY_ID)
         - ACCESSK=$(cat $AWS_SECRET_ACCESS_KEY)
         - printf "[eb-cli]\naws_access_key_id = %s\naws_secret_access_key = %s\n" "$KEY" "cat $ACCESSK" >> ~/.aws/credentials
-        - cat  ~/.aws/credentials
         - pip install awsebcli
     # Run deployment using EB CLI deploy on master branch
     script:
