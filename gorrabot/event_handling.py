@@ -115,6 +115,9 @@ def handle_push(push: dict) -> str:
 
 
 def handle_mr(mr_json: dict) -> str:
+    logger.info(f"Configured Projects {config()['projects']}")
+    logger.info(f"MR json {mr_json}")
+
     if has_label(mr_json, GitlabLabels.DONT_TRACK):
         logger.warning('Ignoring because of label flag')
         send_debug_message('Ignoring because of label flag')
