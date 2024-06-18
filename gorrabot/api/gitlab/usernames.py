@@ -14,9 +14,9 @@ def get_username(data: dict):
 
     user_id = data['object_attributes']['author_id']
     res = gitlab_session.get(GITLAB_API_PREFIX + f'/users/{user_id}')
-    logger.info(f"{res}")
+    if res.status_code != 200:
+        logger.error(f"Could not get users from gitlab {res.status_code}")
     res.raise_for_status()
-    logger.info(11)
     return res.json()['username']
 
 

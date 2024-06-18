@@ -115,13 +115,10 @@ def handle_push(push: dict) -> str:
 
 
 def handle_mr(mr_json: dict) -> str:
-    logger.info(f"Configured Projects {config()['projects']}")
-    logger.info(f"MR json {mr_json}")
     if has_label(mr_json, GitlabLabels.DONT_TRACK):
         logger.warning('Ignoring because of label flag')
         send_debug_message('Ignoring because of label flag')
         return 'Ignoring all!'
-    logger.info("1")
 
     mr_attributes = mr_json['object_attributes']
     project_name = mr_json["repository"]["name"]
@@ -136,16 +133,12 @@ def handle_mr(mr_json: dict) -> str:
             force_send=True
         )
         return
-    logger.info("2")
 
     username = get_username(mr_json)
-    logger.info("8")
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
-    logger.info("9")
 
     branch_regex = regex_dict[project_name]
     regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
-    logger.info("10")
     logger.info(f"Handling MR #{iid} from branch {source_branch} of project {project_name}")
     if 'y2k' in str(iid):
         message = f'Ignoring MR from branch {source_branch} because is y2k'
@@ -156,7 +149,6 @@ def handle_mr(mr_json: dict) -> str:
         )
         logger.info(message)
         return message
-    logger.info("3")
     if not re.match(branch_regex, source_branch) \
        and source_branch not in regex_branch_exceptions:
         logger.info(f"Branch {source_branch} of repository {project_name} do not match regex")
@@ -164,7 +156,6 @@ def handle_mr(mr_json: dict) -> str:
         multi_branch = config()['projects'][project_name].get('multi-branch', '')
         msg_bad_branch_name = MSG_BAD_BRANCH_NAME.format(main_branches=multi_branch)
         comment_mr(project_id, iid, f"@{username}: {msg_bad_branch_name}", can_be_duplicated=False)
-    logger.info("4")
     is_multi_main = is_multi_main_mr(mr_json)
     if is_multi_main:
         logger.info("The MR is multi branch")
@@ -175,7 +166,6 @@ def handle_mr(mr_json: dict) -> str:
     if is_multi_main:
         logger.info("Checking and adding if needed multi MR label")
         add_multiple_merge_requests_label_if_needed(mr_json)
-    logger.info("5")
     sync_related_issue(mr_json)
     logger.info("Filling fields based on issue")
     fill_fields_based_on_issue(mr_json)
@@ -188,11 +178,9 @@ def handle_mr(mr_json: dict) -> str:
         logger.info("Ignoring because of close status")
         send_debug_message("Ignoring because of close status")
         return 'Ignoring closed MR'
-    logger.info("6")
 
     if mr_attributes['title'].lower().startswith('tkt '):
         comment_mr(project_id, iid, f"@{username}: {MSG_TKT_MR}", can_be_duplicated=False)
-    logger.info("7")
     return 'OK'
 
 
