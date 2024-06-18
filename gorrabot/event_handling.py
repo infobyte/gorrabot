@@ -139,10 +139,13 @@ def handle_mr(mr_json: dict) -> str:
     logger.info("2")
 
     username = get_username(mr_json)
+    logger.info("8")
     (project_id, iid) = (mr_attributes['source_project_id'], mr_attributes['iid'])
+    logger.info("9")
 
     branch_regex = regex_dict[project_name]
     regex_branch_exceptions = config()['projects'][project_name].get('regex_branch_exceptions', [])
+    logger.info("10")
     logger.info(f"Handling MR #{iid} from branch {source_branch} of project {project_name}")
     if 'y2k' in str(iid):
         message = f'Ignoring MR from branch {source_branch} because is y2k'
