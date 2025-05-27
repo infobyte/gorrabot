@@ -1,165 +1,139 @@
-Gorrabot is a Gitlab bot made to automate checks and processes in the Faraday
-development.
+# Gorrabot
 
-# Features
+*GitLab bot that automates Faraday’s workflow checks and issue hygiene.*
 
-## <a name="changelog-check"></a>Check that the CHANGELOG is modified
+---
 
-By default, merge requests MUST create a `.md` file inside the
-`CHANGELOG/<current_version>` folder. We do this because it is easier to write
-changelog messages after finishing working on the change than before releasing
-a new version. In the latter, we could easily forget what we did and write a
-lower quality changelog message.
+## Table of Contents
 
-When somebody publishes a ready to merge MR that didn't touch the changelog,
-gorrabot automaticaly sets it to WIP (work in process). Then the MR's author
-is required to touch the changelog, push a new commit and resolve the WIP
-status from the gitlab web.
+1. [Features](#features)
 
-Alternatively, if the MR's author doesn't consider useful to add a changelog
-entry for that change (e.g. when fixing typos or doing small refactors), he/she
-can add the `no-changelog` label to the merge request and this check won't be
-performed to it.
+   1. [CHANGELOG check](#changelog-check)
+   2. [Issue ↔ MR status sync](#issue-state-sync)
+   3. [Field auto‑completion](#field-auto)
+   4. [Branch‑naming check](#branch-naming)
+   5. [MR title check](#title-check)
+   6. [Upper‑version MR automation](#upper-mr)
+   7. [Slack reporting](#slack-report)
+2. [Special labels](#special-labels)
+3. [Deployment](#deployment)
 
-## Issue state changing based on MR status
+   1. [AWS architecture](#aws-arch)
+   2. [SSH access](#ssh)
+4. [Design goals](#design-goals)
 
-Get the issue related to a merge request by inspecting its source branch name
-(e.g `tkt_community_1234_some_description`). Then, when the status of the MR is
-updated, also update the labels and status of the related issue.
+---
 
-Gorrabot also adds a `Closes #1234` text in the description, so GitLab closes
-the related issue when the MR is merged. Also, when a user sees the issue
-details he/she will have a link to its corresponding merge request.
+## <a name="features"></a>Features
 
-Example actions (see the code of `sync_related_issue` `app.py` for the exact
-list):
+### <a name="changelog-check"></a>1 · CHANGELOG check
 
-* Created WIP MR -> Label issue as accepted
-* Pending merge/approbal MR -> Label issue as test
-* Merged MR -> Close issue and delete status labels (accepted, test)
-* Closed MR -> Delete status labels (set to new)
+By default every MR **must** add a `.md` entry inside `CHANGELOG/<current_version>/`.
+If the MR lacks such change, Gorrabot marks it **WIP** and asks the author to
+update it (unless the `no‑changelog` label is present).
 
-<a name="multiple-merge-requests"></a>
-Sometimes this actions aren't desired, like for example when an issue requires
-multiple merge requests to be considered as fixed.  In this case, you can add
-the `multiple-merge-requests` label to the issue and its status and labels
-won't be modified by gorrabot.
+### <a name="issue-state-sync"></a>2 · Issue ↔ MR status sync
 
-## Merge request field completion based on its issue
+Gorrabot infers the related issue from the branch name and keeps issue labels
+in sync with MR state:
 
-If a merge request doesn't have an assigned user, derive it from the assigned
-user of its related issue. Do the same with the MR's milestone.
+| MR state                | Issue label action            |
+| ----------------------- | ----------------------------- |
+| WIP/Draft               | `accepted`                    |
+| Open (ready for review) | `test`                        |
+| Merged                  | Close and clear status labels |
+| Closed (unmerged)       | Clear status labels           |
 
-## <a name="branch-nomenclature-check"></a>Branch naming nomenclature check
+### <a name="field-auto"></a>3 · Field auto‑completion
 
-If the source branch of a merge request doesn't match our nomenclature,
-note that in a comment. The merge request won't be set to WIP because
-of this, it is just a warning to avoid doing this the next time.
+Missing assignee or milestone? Gorrabot copies them from the linked issue.
 
-## Merge request title check
+### <a name="branch-naming"></a>4 · Branch‑naming check
 
-When creating a merge request from the gitlab web, by default it derives its
-title from the source branch name. This is useful in many projects, but in
-Faraday it can be annoying because of our branch naming conventions.
+Warns (non‑blocking) if branch name deviates from our `tkt_*`/`sup_*`/`exp_*`
+conventions.
 
-For example, it wouldn't be useful to have a merge request titled `Tkt community
-1234 some description`. A more concise title would be more helpful. If we
-wanted, we could know the related issue and target version just by looking at
-the source and target branches of the MR.
+### <a name="title-check"></a>5 · MR title check
 
-Like with the previous feature, this check will just leave a comment in the
-merge request if doesn't pass, so the user could avoid this the next time.
-There is no need to set it to WIP.
+Titles inherited from the branch (`Tkt community 1234 …`) trigger a friendly
+comment suggesting a concise human title.
 
-## Automatic creation of upper versions MRs
+### <a name="upper-mr"></a>6 · Upper‑version MR automation
 
-When a community feature MR also needs changes in professional, the suggested way to
-proceed is to create a branch of professional/dev with both the changes of the community MR
-and the specific changes to professional. Then, open another merge request with target
-branch professional/dev.
+For multi‑edition work (Community → Professional → Enterprise) Gorrabot auto‑creates
+and wires follow‑up MRs, notifying the author when manual action is needed.
 
-Creating another merge request for the professional feature is tedious, so when the
-user pushes the professional branch, Gorrabot will detect this is an "upper version
-MR". Then, it will create a new MR with the same content as the community MR, but
-with a `(professional edition)` added in the title to properly differentiate both MRs.
+### <a name="slack-report"></a>7 · Slack reporting
 
-The same thing happens when a professional branch conflicts with upper branches (if exists).
+Scheduled digests report:
 
-Gorrabot will also notify the user the MR was created. And when the community MR is
-merged, it will notify the user who merged it so they don't forget about
-merging the upper version MR too.
+* Stale MRs (WIP & non‑WIP)
+* Excessive `accepted` backlog
+* Issues blocked waiting for a decision
+  Individual devs get personal to‑do lists; `REPORT_USERS` get a team summary.
 
-## Check and report by slack 
+---
 
-Gorrabot checks the status of the projects, and give a summary of: 
+## <a name="special-labels"></a>Special labels
 
- * Staled MR (both WIP and non-WIP) not update in a given amount of time
- * The accepted issues are less than a boundary
- * There is no issue waiting for a decision.
- 
-And gives each developer a summary of undesirable behaviour. Moreover, it gives
-a summary of the team to the REPORT users.
+| Label                     | Effect                                      |
+| ------------------------- | ------------------------------------------- |
+| `no-changelog`            | Skip CHANGELOG enforcement                  |
+| `multiple-merge-requests` | Disable issue–MR status sync                |
+| `sacate-la-gorra`         | Disable **all** Gorrabot checks for that MR |
+| `waiting-decision`        | Triggers decision‑waiting reminders         |
 
-### Staled MR and accepted issues
+---
 
-Based on the default concept of gitlab, this value is obtained by the gitlab 
-API.
+## <a name="deployment"></a>Deployment
 
-### Waiting for decision issues
+### <a name="aws-arch"></a>AWS architecture
 
-When the `waiting-decision` label is set in a issue, gorrabot will parse its 
-description and look for a line starting with the prefix `WFD: `. After that 
-prefix, there should be a comma-separated list of gitlab or slack users, whom
-decision is expected to resolve the issue. 
+| Component                  | Value                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| **Account (prod)**         | `471112768198`                                                                |
+| **Elastic Beanstalk env.** | `gorrabot-dev` [(public URL)](http://gorrabot.us-east-1.elasticbeanstalk.com) |
+| **VPC**                    | `vpc-07607b18eac7ff529` (`gorrabot-vpc`)                                      |
+| **Platform**               | AL2 Docker *v2* with Launch Templates                                         |
 
-In the case of gitlab users, you should reference them with an @, as the common
-gitlab behaviour. In the case of slack users, based on slack API, you should 
-use the email username. E.g. for `uname@company.com` the id is `uname` not 
-User Name, or any other display name.
+> The environment lives in a dedicated VPC, isolated from other Faraday
+> workloads.
 
-# Summary of special labels
+### <a name="ssh"></a>SSH access
 
-* `no-changelog`: Use this when the merge request consists of a really
-  small check that shouldn't be reflected on the `RELEASE.md` file
-  See [this](#changelog-check) for more documentation about this
-* `multiple-merge-requests`: The only label that must be applied to issues
-  instead of merge requests. Avoid gorrabot changing the status and labels of
-  issues labeled with this. See [this](#multiple-merge-requests) for more
-  information
-* `sacate-la-gorra`: A wildcard label that totally disables gorrabot on
-  that merge request. **THIS ISN'T RECOMMENDED, SO THINK TWICE WHEN USING THIS**
-* `waiting-decision`: This issue needs a decision be taken before be resolved. 
-  See [this](#waiting-for-decision-issues) for more information.
+1. **Open port 22** on the Security Group attached to the *gorrabot-dev* Auto
+   Scaling group (preferably restricted to your source IP).
+2. Retrieve the private key from **AWS Secrets Manager**:
 
+   ```bash
+   aws secretsmanager get-secret-value \
+     --secret-id gorrabotkey \
+     --query SecretString --output text > ~/.ssh/gorrabotkey
+   chmod 600 ~/.ssh/gorrabotkey
+   ```
+3. Connect to the instance (Elastic IP **3.225.208.31**):
 
-# Design goals
+   ```bash
+   ssh -i ~/.ssh/gorrabotkey ec2-user@3.225.208.31
+   ```
 
-## Avoid state
+The public key is already in `~/.ssh/authorized_keys` on the instance.
 
-To simplify deployment and avoid having to do data migrations, it makes sense
-to not use a database in this project. Most things can be achieved this way.
+---
 
-For example, lets take the [Branch nomenclature
-check](#branch-nomenclature-check) feature. I don't want gorrabot to make a
-comment each time the merge request is modified, so I need a way to avoid
-duplicating this kind of comment.
+## <a name="design-goals"></a>Design goals
 
-The traditional way to solve this would be to store in a database the merge
-requests where this comment has already been made. I instead check for the
-comments of the MR. If there exists a comment similar to what gorrabot
-wants to comment, return without commenting. When done this way, I don't
-need to store anything in a database, just use the Gitlab information.
+### Avoid state
 
-This has some small drawbacks also. For example, if I want to change the text
-of the comment to something new and a merge request has already a comment with
-the old version text, there will be two similar comments with different text.
+Stateless by design: Gorrabot re‑queries GitLab instead of persisting data.
+Small downsides (duplicate comments after wording changes) are acceptable for
+simpler ops.
 
-I think this behavior is acceptable for what we're doing, and doing big
-architecture changes just to fix this kind of things doesn't bring much
-benefits. Sacrificing simplicity is bad.
+### Don't replace CI
 
-## Don't replace a CI
+Gorrabot focuses on workflow automation; build/test pipelines remain the job of
+CI.
 
-The goal of this project is to help us with some things related to our
-development process, not to our code base itself. For this things,
-having a continuous integration seems to be a better choice.
+---
+
+© Infobyte LLC · Licensed under GPL v3
