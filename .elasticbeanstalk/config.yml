@@ -1,15 +1,15 @@
 branch-defaults:
   test_aws:
-    environment: Gorrabot-dev
+    environment: gorrabot-dev
 environment-defaults:
-  Gorrabot-dev:
+  gorrabot-dev:
     branch: master
     repository:
 global:
-  application_name: Gorrabot
-  default_ec2_keyname: aws-eb
-  default_platform: Python 3.8 running on 64bit Amazon Linux 2
-  default_region: eu-central-1
+  application_name: gorrabot-dev
+  default_ec2_keyname: juanmac #debug
+  default_platform: Python 3.9 running on 64bit Amazon Linux 2
+  default_region: us-east-1
   include_git_submodules: true
   instance_profile: null
   platform_name: null
